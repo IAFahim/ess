@@ -18,12 +18,9 @@ namespace EssStructProbe
         public byte RanAsManagedCode;
     }
 
-    [BurstCompile(CompileSynchronously = true)]
-    public partial struct RunMachineJob : IJobEntity
+    public static class ProbeDriver
     {
-        public ScriptStep Step;
-
-        void Execute(ref PlayerSm machine, ref BurstWitness witness)
+        public static void Run(ref PlayerSm machine, ref BurstWitness witness, in ScriptStep step)
         {
             var isManaged = false;
             MarkManaged(ref isManaged);
@@ -37,14 +34,14 @@ namespace EssStructProbe
                 machine.Start();
             }
 
-            if (Step.SetTrackLoaded != 0)
+            if (step.SetTrackLoaded != 0)
             {
                 machine.vars.trackLoaded = true;
             }
 
-            if (Step.DispatchEvent != 0)
+            if (step.DispatchEvent != 0)
             {
-                machine.DispatchEvent(Step.Event);
+                machine.DispatchEvent(step.Event);
             }
         }
 
@@ -52,6 +49,27 @@ namespace EssStructProbe
         static void MarkManaged(ref bool isManaged)
         {
             isManaged = true;
+        }
+    }
+
+    [BurstCompile(CompileSynchronously = true)]
+    public partial struct RunMachineJob : IJobEntity
+    {
+        public ScriptStep Step;
+
+        void Execute(ref PlayerSm machine, ref BurstWitness witness)
+        {
+            ProbeDriver.Run(ref machine, ref witness, Step);
+        }
+    }
+
+    public partial struct RunMachineWithoutBurstJob : IJobEntity
+    {
+        public ScriptStep Step;
+
+        void Execute(ref PlayerSm machine, ref BurstWitness witness)
+        {
+            ProbeDriver.Run(ref machine, ref witness, Step);
         }
     }
 
@@ -71,6 +89,22 @@ namespace EssStructProbe
         {
             var step = SystemAPI.GetSingleton<ScriptStep>();
             state.Dependency = new RunMachineJob { Step = step }.Schedule(state.Dependency);
+        }
+    }
+
+    [DisableAutoCreation]
+    public partial struct RunMachineWithoutBurstSystem : ISystem
+    {
+        public void OnCreate(ref SystemState state)
+        {
+            state.RequireForUpdate<ScriptStep>();
+            state.RequireForUpdate<PlayerSm>();
+        }
+
+        public void OnUpdate(ref SystemState state)
+        {
+            var step = SystemAPI.GetSingleton<ScriptStep>();
+            state.Dependency = new RunMachineWithoutBurstJob { Step = step }.Schedule(state.Dependency);
         }
     }
 
@@ -112,6 +146,23 @@ namespace EssStructProbe
             Assert.IsTrue(UnsafeUtility.IsUnmanaged<PlayerSm>());
             Assert.IsTrue(UnsafeUtility.IsUnmanaged<PlayerSm.Vars>());
             Assert.AreNotEqual(-1, TypeManager.GetTypeIndex<PlayerSm>().Value);
+        }
+
+        [Test]
+        public void TheWitnessReportsManagedCodeForAJobWithoutBurst()
+        {
+            using var world = new World("ess-struct-probe-managed");
+            var entityManager = world.EntityManager;
+            var machineEntity = entityManager.CreateEntity(typeof(PlayerSm), typeof(BurstWitness));
+            var stepEntity = entityManager.CreateEntity(typeof(ScriptStep));
+            var system = world.CreateSystem<RunMachineWithoutBurstSystem>();
+
+            entityManager.SetComponentData(stepEntity, Dispatch(PlayerSm.EventId.PLAY));
+            system.Update(world.Unmanaged);
+            entityManager.CompleteAllTrackedJobs();
+
+            Assert.AreEqual(1, entityManager.GetComponentData<BurstWitness>(machineEntity).RanAsManagedCode);
+            Assert.AreEqual(PlayerSm.StateId.STOPPED, entityManager.GetComponentData<PlayerSm>(machineEntity).stateId);
         }
 
         [Test]

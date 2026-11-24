@@ -67,4 +67,4 @@ scripts/unity-check.sh out/ess <scratch unity project>
 
 `pty_smoke.py` drives the menu and the watch keys in a real terminal (Linux and macOS only).
 
-Verified on Linux x64 only. macOS, Windows and ARM are unverified: see the open issues.
+Verified on Linux x64 only, including Unity 7000.0.0a20 with Entities 7.0.0 and Burst 2.0.0 (`scripts/unity-check.sh`: a `[BurstCompile]` `IJobEntity` drives the struct as an `IComponentData` through choice and history, equal to managed code step for step; a job without `[BurstCompile]` flips the witness, so the witness is not vacuous). macOS, Windows and ARM are unverified: see the open issues.
