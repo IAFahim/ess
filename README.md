@@ -38,7 +38,7 @@ Open the diagram in the demo folder, change it, and run `ess w` there.
 
 ## sv
 
-[sv](https://github.com/IAFahim/sv) is a private repo, so git must be logged in to GitHub once: `gh auth login`, then `gh auth setup-git`.
+[sv](https://github.com/IAFahim/sv) is a public repo, so these commands need only `git` and a connection. No login.
 
 - `ess dsv` makes `demo-sv`, a clone of sv, and runs sv's own first example (`samples/Sv.Hello`). It checks the output against sv's `expected.txt`. Run it again and it fetches the latest sv and resets `demo-sv`, throwing away any changes you made inside it.
 - `ess n sv` clones sv into `./sv` and says how to use it. It never touches an `sv` folder that is already there.

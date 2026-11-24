@@ -15,12 +15,12 @@ internal sealed class SvRepo(Subprocess subprocess, EssConsole console, string s
 
     public async Task<bool> Clone(string parentFolder, string cloneFolderName, CancellationToken cancel)
     {
-        console.Step("Getting sv from GitHub. It is private, so git needs your GitHub login.");
+        console.Step("Getting sv from GitHub.");
 
         var cloned = await Git(parentFolder, cancel, "clone", sourceUrl, cloneFolderName);
         if (!cloned.Succeeded)
         {
-            console.Bad("Could not get sv. Run:  gh auth login   then  gh auth setup-git   and try again.");
+            console.Bad("Could not get sv. Are you online?");
             console.Line(cloned.Output.Trim());
             return false;
         }
