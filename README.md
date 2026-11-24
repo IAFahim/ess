@@ -4,21 +4,20 @@ Short commands for [StateSmith](https://github.com/StateSmith/StateSmith). Write
 
 You do not need an IDE. You do not need to remember long commands.
 
-## The four keys
+## Commands
 
-| Type | Means | Does |
+`ess <command> [arguments] [options]`. Every command has a short form. `ess --help` lists everything, `ess <command> --help` explains one.
+
+| Type | Short | Does |
 |---|---|---|
-| `ess n` (or `in`) | new | makes a starter diagram, gets StateSmith, makes the code |
-| `ess r` | run | makes the code one time |
-| `ess w` | watch | makes the code every time you save. Press `g` to save to GitHub now, `q` to stop |
-| `ess g` (or `s`) | git, save | saves to git and pushes to GitHub |
+| `ess new [what]` | `n`, `in` | makes a starter diagram here. `ess n sv` gets the sv engine too |
+| `ess run` | `r` | makes the code once |
+| `ess watch` | `w` | makes the code every time you save. While watching: `g` saves to GitHub now, `q` stops |
+| `ess git` | `g`, `s` | saves to git and pushes to GitHub |
+| `ess demo [which]` | `d` | lists the demos. `ess d 1` or `ess d light` makes one |
+| `ess update <what>` | `u` | gets the latest of something: `ess u sv` |
 
-| `ess d`, `d1`, `d2` | demo | makes a demo folder to try (see below) |
-| `ess dsv` | sv demo | clones sv, runs its first example; run again to get the latest sv and reset |
-| `ess n sv` | new sv | clones sv into `./sv` |
-| `ess u sv` | update sv | gets the latest sv (`git pull --ff-only`) |
-
-Type `ess` alone and press one key. The menu stays open until you press `q`. If you mistype (`ess wach`, `ess gti`), `ess` asks what you meant.
+`ess` alone in a terminal shows a one-key menu. If you mistype a command, `ess` tells you what you probably meant. `ess --version` shows the version.
 
 ## Try a demo
 
@@ -26,22 +25,30 @@ Type `ess` alone and press one key. The menu stays open until you press `q`. If 
 ess d
 ```
 
-Run it from any folder. It makes its own folder (`demo-light`) right there, so you do not need to make or enter one first. Each demo makes the code, and (for `d` and `d1`) runs it with `dotnet run` so you see the result at once. It never overwrites a folder that is already there.
+lists the demos. Make one with its number or its name, from any folder:
 
-| Type | Folder | Shows |
+```
+ess d 1
+ess d sv
+```
+
+Each demo makes its own folder right there, makes the code, and (for 1, 2 and 4) runs it so you see the result at once. It never overwrites a folder that is already there, except `ess d sv`, which resets its own `demo-sv` on purpose.
+
+| Demo | Folder | Shows |
 |---|---|---|
-| `ess d` | `demo-light` | a lamp: two states and a counter |
-| `ess d1` | `demo-player` | nested states, a choice, history, and your own code beside the made struct |
-| `ess d2` | `demo-unity-ecs` | Unity ECS: copy the folder into `Assets/`, run the EditMode tests, expect 3 passed |
+| `1`, `light` | `demo-light` | a lamp: two states and a counter |
+| `2`, `player` | `demo-player` | nested states, a choice, history, and your own code beside the made struct |
+| `3`, `ecs` | `demo-unity-ecs` | Unity ECS: copy the folder into `Assets/`, run the EditMode tests, expect 3 passed |
+| `4`, `sv` | `demo-sv` | sv and StateSmith together: sv keeps the numbers and fires events, a StateSmith struct follows them |
 
 Open the diagram in the demo folder, change it, and run `ess w` there.
 
 ## sv
 
-[sv](https://github.com/IAFahim/sv) is a public repo, so these commands need only `git` and a connection. No login.
+[sv](https://github.com/IAFahim/sv) is a public repo, so these need only `git` and a connection. No login.
 
-- `ess dsv` makes `demo-sv`, a clone of sv, and runs sv's own first example (`samples/Sv.Hello`). It checks the output against sv's `expected.txt`. Run it again and it fetches the latest sv and resets `demo-sv`, throwing away any changes you made inside it.
-- `ess n sv` clones sv into `./sv` and says how to use it. It never touches an `sv` folder that is already there.
+- `ess d sv` makes `demo-sv`: a clone of sv in `demo-sv/sv`, and a small project in `demo-sv/app` that uses both. sv keeps the hero's health and fires its low-health event. A StateSmith struct (`HeroSm`) follows that event: Healthy, Wounded, Healthy. Run it again and it gets the latest sv and resets the whole folder, throwing away any changes you made inside it.
+- `ess n sv` makes the same two folders (`sv` and `app`) in the current folder. It never touches ones that are already there.
 - `ess u sv` pulls the latest into `./sv`. It stops and tells you if you changed something in sv.
 
 ## Install: one line

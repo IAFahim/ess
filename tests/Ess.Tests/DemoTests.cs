@@ -4,86 +4,62 @@ namespace Ess.Tests;
 
 public class DemoTests
 {
-    private readonly DemoRequest request = new();
     private readonly DemoCatalog catalog = new();
+    private readonly DemoSelector selector = new(new DemoCatalog());
 
     [Theory]
-    [InlineData("d", 0)]
-    [InlineData("D", 0)]
-    [InlineData("d1", 1)]
-    [InlineData("d2", 2)]
-    [InlineData("--d2", 2)]
-    [InlineData("d12", 12)]
-    public void TheLevelComesFromTheTypedWord(string typed, int expected)
+    [InlineData("1", "light")]
+    [InlineData("2", "player")]
+    [InlineData("3", "ecs")]
+    [InlineData("4", "sv")]
+    [InlineData("light", "light")]
+    [InlineData("LIGHT", "light")]
+    [InlineData("sv", "sv")]
+    [InlineData("-1", "light")]
+    [InlineData("--sv", "sv")]
+    public void ANumberOrANameFindsTheDemo(string which, string expectedName)
     {
-        Assert.Equal(expected, request.LevelFrom(typed, []));
-    }
-
-    [Theory]
-    [InlineData("demo", "2", 2)]
-    [InlineData("demo", "0", 0)]
-    [InlineData("d", "1", 1)]
-    public void ALevelCanFollowTheWord(string typed, string extra, int expected)
-    {
-        Assert.Equal(expected, request.LevelFrom(typed, [extra]));
+        Assert.Equal(expectedName, selector.Find(which)!.Name);
     }
 
     [Theory]
-    [InlineData("dsv", null, true)]
-    [InlineData("DSV", null, true)]
-    [InlineData("demo", "sv", true)]
-    [InlineData("demo", "1", false)]
-    [InlineData("d1", null, false)]
-    [InlineData("d", null, false)]
-    public void TheSvDemoIsDsvOrDemoSv(string typed, string? extra, bool expected)
+    [InlineData("0")]
+    [InlineData("5")]
+    [InlineData("fast")]
+    [InlineData("")]
+    public void AnythingElseFindsNothing(string which)
     {
-        Assert.Equal(expected, request.IsSvDemo(typed, extra is null ? [] : [extra]));
+        Assert.Null(selector.Find(which));
     }
 
     [Fact]
-    public void DsvIsADemoWordButHasNoLevel()
+    public void DemosAreNumberedFromOneWithUniqueNamesAndFolders()
     {
-        Assert.True(request.IsDemoWord("dsv"));
-        Assert.Null(request.LevelFrom("dsv", []));
-    }
-
-    [Fact]
-    public void WithNoLevelTheBasicDemoIsMeant()
-    {
-        Assert.Equal(0, request.LevelFrom("demo", []));
-    }
-
-    [Fact]
-    public void ANonNumberAfterTheWordIsNotADemo()
-    {
-        Assert.Null(request.LevelFrom("demo", ["fast"]));
-    }
-
-    [Theory]
-    [InlineData("d", true)]
-    [InlineData("d7", true)]
-    [InlineData("demo", false)]
-    [InlineData("dx", false)]
-    [InlineData("", false)]
-    [InlineData("d12345", false)]
-    public void OnlyDThenDigitsIsADemoWord(string word, bool expected)
-    {
-        Assert.Equal(expected, request.IsDemoWord(word));
-    }
-
-    [Fact]
-    public void EveryDemoHasAFolderAndASequentialLevel()
-    {
-        Assert.Equal([0, 1, 2], catalog.All.Select(demo => demo.Level));
+        Assert.Equal([1, 2, 3, 4], catalog.All.Select(demo => demo.Number));
+        Assert.Equal(catalog.All.Count, catalog.All.Select(demo => demo.Name).Distinct().Count());
         Assert.Equal(catalog.All.Count, catalog.All.Select(demo => demo.FolderName).Distinct().Count());
-        Assert.Null(catalog.ForLevel(3));
+        Assert.Single(catalog.All, demo => demo.IsSvEngine);
+    }
+
+    [Fact]
+    public void TheListShowsEveryDemoWithItsNumberAndName()
+    {
+        var text = string.Join("\n", catalog.ListLines());
+
+        Assert.Contains("ess d <number or name>", text);
+
+        foreach (var demo in catalog.All)
+        {
+            Assert.Contains($"{demo.Number}  {demo.Name}", text);
+            Assert.Contains(demo.Title, text);
+        }
     }
 
     [Theory]
     [InlineData("light", "LightSm.plantuml", "Program.cs", "Light.csproj", "README.txt")]
     [InlineData("player", "PlayerSm.plantuml", "PlayerSm.Actions.cs", "Program.cs", "Player.csproj", "README.txt")]
     [InlineData("ecs", "PlayerSm.plantuml", "PlayerSmEcsTests.cs", "EssStructProbe.Tests.asmdef", "README.txt")]
-    public async Task EveryDemoWritesItsFiles(string resourceFolder, params string[] expectedFiles)
+    public async Task EveryFileDemoWritesItsFiles(string resourceFolder, params string[] expectedFiles)
     {
         var target = Path.Combine(Path.GetTempPath(), "ess-demo-test-" + Guid.NewGuid().ToString("N"));
 

@@ -2,32 +2,64 @@ namespace Ess;
 
 internal sealed class DemoCommand(
     DemoCatalog demos,
-    DemoRequest request,
+    DemoSelector selector,
     DemoFiles files,
     CodeGenerator generator,
     Subprocess subprocess,
     SvCommand sv,
+    EssKeys keys,
     EssConsole console)
 {
+    private const char QuitKey = 'q';
+
     private readonly string[] dotnetRunArguments = ["run", "--nologo"];
 
-    public async Task<int> Run(string typed, IReadOnlyList<string> extraArguments, string folder, CancellationToken cancel)
+    public async Task<int> Run(IReadOnlyList<string> arguments, string folder, bool chooseAfterList, CancellationToken cancel)
     {
-        if (request.IsSvDemo(typed, extraArguments))
+        var which = arguments.Count > 0 ? arguments[0] : await ListThenAsk(chooseAfterList, cancel);
+
+        if (which is null)
+        {
+            return 0;
+        }
+
+        var demo = selector.Find(which);
+        if (demo is null)
+        {
+            console.UsageError($"There is no demo \"{which}\".");
+            console.UsageHint("See the list:  ess d");
+            return 1;
+        }
+
+        if (demo.IsSvEngine)
         {
             return await sv.Demo(folder, cancel);
         }
 
-        var level = request.LevelFrom(typed, extraArguments);
-        var demo = level is null ? null : demos.ForLevel(level.Value);
+        return await MakeDemo(demo, folder, cancel);
+    }
 
-        if (demo is null)
+    private async Task<string?> ListThenAsk(bool chooseAfterList, CancellationToken cancel)
+    {
+        foreach (var line in demos.ListLines())
         {
-            console.Bad($"There is no demo \"{typed}\". The demos are:");
-            ListDemos();
-            return 1;
+            console.Line(line);
         }
 
+        if (!chooseAfterList)
+        {
+            return null;
+        }
+
+        console.Line();
+        console.Line($"Press a number to make it  ({QuitKey} to quit):");
+
+        var pressed = await keys.ReadAsync(cancel);
+        return pressed == QuitKey ? null : pressed.ToString();
+    }
+
+    private async Task<int> MakeDemo(DemoInfo demo, string folder, CancellationToken cancel)
+    {
         var demoFolder = Path.Combine(folder, demo.FolderName);
         if (Directory.Exists(demoFolder))
         {
@@ -36,7 +68,7 @@ internal sealed class DemoCommand(
             return 1;
         }
 
-        console.Step($"Demo {(demo.Level == 0 ? "d" : "d" + demo.Level)}: {demo.Title}");
+        console.Step($"Demo {demo.Number}, {demo.Name}: {demo.Title}");
 
         var written = await files.WriteTo(demoFolder, demo.ResourceFolder, cancel);
         console.Good($"made folder {demoFolder}  ({written.Count} files)");
@@ -48,7 +80,7 @@ internal sealed class DemoCommand(
 
         if (demo.RunsWithDotnet)
         {
-            await RunWithDotnet(demo, demoFolder, cancel);
+            await RunWithDotnet(demoFolder, cancel);
         }
 
         console.Line();
@@ -57,11 +89,11 @@ internal sealed class DemoCommand(
             console.Step(nextStep);
         }
 
-        console.Step("More demos:  " + demos.Listing);
+        console.Step("More demos:  ess d");
         return 0;
     }
 
-    private async Task RunWithDotnet(DemoInfo demo, string demoFolder, CancellationToken cancel)
+    private async Task RunWithDotnet(string demoFolder, CancellationToken cancel)
     {
         console.Line();
         console.Step($"Running it:  cd {demoFolder} && dotnet run   (first time takes a few seconds)");
@@ -81,15 +113,5 @@ internal sealed class DemoCommand(
         {
             console.Warn("dotnet run did not work. The demo files are made. Run it yourself to see the full error.");
         }
-    }
-
-    private void ListDemos()
-    {
-        foreach (var demo in demos.All)
-        {
-            console.Line($"  {(demo.Level == 0 ? "d" : "d" + demo.Level),-3} {demo.Title}");
-        }
-
-        console.Line("  dsv sv: clone sv and run its first example");
     }
 }

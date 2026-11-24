@@ -17,7 +17,7 @@ public sealed class SvRepoTests : IDisposable
         originPath = Path.Combine(workFolder, "origin.git");
         seedFolder = Path.Combine(workFolder, "seed");
 
-        repo = new SvRepo(subprocess, new EssConsole(consoleOutput, useColor: false), originPath);
+        repo = new SvRepo(subprocess, new EssConsole(consoleOutput, consoleOutput, useColor: false), originPath);
 
         Git(workFolder, "init", "--bare", "-b", "main", originPath);
         Git(workFolder, "clone", originPath, seedFolder);
@@ -95,7 +95,7 @@ public sealed class SvRepoTests : IDisposable
     [Fact]
     public async Task CloneFailsCleanlyWhenTheSourceIsMissing()
     {
-        var missing = new SvRepo(subprocess, new EssConsole(consoleOutput, useColor: false), Path.Combine(workFolder, "no-such-repo.git"));
+        var missing = new SvRepo(subprocess, new EssConsole(consoleOutput, consoleOutput, useColor: false), Path.Combine(workFolder, "no-such-repo.git"));
 
         Assert.False(await missing.Clone(workFolder, "sv2", CancellationToken.None));
         Assert.Contains("Could not get sv", consoleOutput.ToString());

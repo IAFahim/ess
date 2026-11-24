@@ -1,0 +1,22 @@
+@startuml HeroSm
+
+[*] --> Healthy
+
+Healthy --> Wounded : LOW_HEALTH
+Wounded : enter / woundedCount += 1;
+Wounded --> Healthy : RECOVERED
+
+/'! $CONFIG : toml
+[RenderConfig]
+AutoExpandedVars = "public int woundedCount;"
+[RenderConfig.CSharp]
+NameSpace = "Machines"
+[SmRunnerSettings]
+transpilerId = "CSharp"
+[SmRunnerSettings.smDesignDescriber]
+enabled = true
+[SmRunnerSettings.smDesignDescriber.outputSections]
+beforeTransformations = false
+afterTransformations = true
+'/
+@enduml

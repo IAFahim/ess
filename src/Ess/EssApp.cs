@@ -1,8 +1,9 @@
 namespace Ess;
 
 internal sealed class EssApp(
-    CommandResolver resolver,
-    CommandCatalog catalog,
+    ArgumentParser parser,
+    CommandTable table,
+    HelpWriter help,
     EssKeys keys,
     EssConsole console,
     NewCommand newCommand,
@@ -11,50 +12,79 @@ internal sealed class EssApp(
     GitCommand gitCommand,
     DemoCommand demoCommand,
     UpdateCommand updateCommand,
-    string version)
+    string version,
+    bool interactive)
 {
     private const char YesKey = 'y';
     private const char QuitKey = 'q';
 
     public async Task<int> Run(string[] args, string folder, CancellationToken cancel)
     {
-        var typed = args.Length > 0 ? args[0] : "";
-        var extraArguments = args.Skip(1).ToArray();
-        var resolution = resolver.Resolve(typed);
+        var invocation = parser.Parse(args);
 
-        switch (resolution.Kind)
+        switch (invocation.Kind)
         {
-            case ResolutionKind.RunCommand:
-                return await Execute(resolution.Command!.Command, typed, extraArguments, folder, cancel);
+            case InvocationKind.NoArguments:
+                return interactive ? await ChooseFromMenu(folder, cancel) : Print(help.Global());
 
-            case ResolutionKind.ShowVersion:
+            case InvocationKind.GlobalHelp:
+                return Print(help.Global());
+
+            case InvocationKind.CommandHelp:
+                return Print(help.For(invocation.Command!));
+
+            case InvocationKind.Version:
                 console.Line($"ess {version}");
                 return 0;
 
-            case ResolutionKind.DidYouMean:
-                return await ConfirmThenExecute(typed, resolution.Command!, extraArguments, folder, cancel);
-
-            case ResolutionKind.Unknown:
-                console.Bad($"I do not know \"{typed}\".");
-                console.Line();
-                return await ChooseFromMenu(folder, cancel);
+            case InvocationKind.Command:
+                return await Execute(invocation.Command!.Command, invocation.Arguments, folder, chooseAfterList: false, cancel);
 
             default:
-                return await ChooseFromMenu(folder, cancel);
+                return await Fail(invocation, args, folder, cancel);
         }
     }
 
-    private async Task<int> ConfirmThenExecute(string typed, CommandInfo guess, string[] extraArguments, string folder, CancellationToken cancel)
+    private int Print(IReadOnlyList<string> lines)
     {
-        console.Warn($"I do not know \"{typed}\". Did you mean  {guess.Key}  ({guess.Name})?");
-        console.Line("    Press y for yes, any other key to stop.");
-
-        if (await keys.ReadAsync(cancel) != YesKey)
+        foreach (var line in lines)
         {
-            return 1;
+            console.Line(line);
         }
 
-        return await Execute(guess.Command, guess.Key, extraArguments, folder, cancel);
+        return 0;
+    }
+
+    private async Task<int> Fail(Invocation invocation, string[] args, string folder, CancellationToken cancel)
+    {
+        if (interactive && invocation.SuggestedCommand is not null)
+        {
+            console.Warn($"{invocation.Error}");
+            console.Line($"    Did you mean  {invocation.SuggestedLine} ?  Press y for yes, any other key to stop.");
+
+            if (await keys.ReadAsync(cancel) != YesKey)
+            {
+                return 1;
+            }
+
+            return await Run(ReplaceCommandWord(args, invocation.SuggestedCommand.Name), folder, cancel);
+        }
+
+        console.UsageError(invocation.Error);
+        if (invocation.SuggestedLine.Length > 0)
+        {
+            console.UsageHint($"Did you mean:  {invocation.SuggestedLine}");
+        }
+
+        return 1;
+    }
+
+    private static string[] ReplaceCommandWord(string[] args, string commandName)
+    {
+        var replaced = args.ToArray();
+        var commandWordIndex = Array.FindIndex(replaced, arg => !arg.StartsWith('-'));
+        replaced[commandWordIndex] = commandName;
+        return replaced;
     }
 
     private async Task<int> ChooseFromMenu(string folder, CancellationToken cancel)
@@ -63,7 +93,17 @@ internal sealed class EssApp(
 
         while (!cancel.IsCancellationRequested)
         {
-            ShowMenu(folder);
+            console.Line("ess  -  easy StateSmith");
+            console.Line($"folder: {folder}");
+            console.Line();
+
+            foreach (var line in help.Menu())
+            {
+                console.Line(line);
+            }
+
+            console.Line();
+            console.Line($"Press one key  ({QuitKey} to quit, ess --help for everything):");
 
             var pressed = await keys.ReadAsync(cancel);
             if (pressed == QuitKey)
@@ -71,8 +111,8 @@ internal sealed class EssApp(
                 return lastExitCode;
             }
 
-            var resolution = resolver.Resolve(pressed.ToString());
-            if (resolution.Kind != ResolutionKind.RunCommand)
+            var command = table.Find(pressed.ToString());
+            if (command is null || command.MinArguments > 0)
             {
                 console.Bad($"\"{pressed}\" is not one of the keys.");
                 console.Line();
@@ -80,38 +120,23 @@ internal sealed class EssApp(
             }
 
             console.Line();
-            lastExitCode = await Execute(resolution.Command!.Command, pressed.ToString(), [], folder, cancel);
+            lastExitCode = await Execute(command.Command, [], folder, chooseAfterList: true, cancel);
             console.Line();
         }
 
         return lastExitCode;
     }
 
-    private void ShowMenu(string folder)
-    {
-        console.Line("ess  -  easy state smith");
-        console.Line($"folder: {folder}");
-        console.Line();
-
-        foreach (var command in catalog.All)
-        {
-            console.Line($"  {command.Key}   {command.Name,-6}  {command.Meaning}");
-        }
-
-        console.Line();
-        console.Line($"Press one key  ({QuitKey} to quit):");
-    }
-
-    private Task<int> Execute(EssCommand command, string typed, string[] extraArguments, string folder, CancellationToken cancel)
+    private Task<int> Execute(EssCommand command, IReadOnlyList<string> arguments, string folder, bool chooseAfterList, CancellationToken cancel)
     {
         return command switch
         {
-            EssCommand.New => newCommand.Run(extraArguments, folder, cancel),
+            EssCommand.New => newCommand.Run(arguments.ToArray(), folder, cancel),
             EssCommand.Run => runCommand.Run(folder, cancel),
             EssCommand.Watch => watchCommand.Run(folder, cancel),
             EssCommand.Git => gitCommand.Run(folder, cancel),
-            EssCommand.Demo => demoCommand.Run(typed, extraArguments, folder, cancel),
-            EssCommand.Update => updateCommand.Run(extraArguments, folder, cancel),
+            EssCommand.Demo => demoCommand.Run(arguments, folder, chooseAfterList, cancel),
+            EssCommand.Update => updateCommand.Run(arguments, folder, cancel),
             _ => throw new ArgumentOutOfRangeException(nameof(command), command, "Unknown ess command"),
         };
     }

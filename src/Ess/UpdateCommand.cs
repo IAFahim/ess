@@ -2,16 +2,16 @@ namespace Ess;
 
 internal sealed class UpdateCommand(SvCommand sv, EssConsole console)
 {
-    public async Task<int> Run(IReadOnlyList<string> extraArguments, string folder, CancellationToken cancel)
-    {
-        var what = extraArguments.Count > 0 ? extraArguments[0].Trim().ToLowerInvariant() : "";
+    private const string SvWord = "sv";
 
-        if (what == "sv")
+    public async Task<int> Run(IReadOnlyList<string> arguments, string folder, CancellationToken cancel)
+    {
+        if (arguments[0].Trim().Equals(SvWord, StringComparison.OrdinalIgnoreCase))
         {
             return await sv.Update(folder, cancel);
         }
 
-        console.Warn("Update what?  ess u sv");
+        console.UsageError($"I cannot update \"{arguments[0]}\". For now only:  ess u sv");
         return 1;
     }
 }

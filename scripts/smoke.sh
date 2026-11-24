@@ -21,8 +21,13 @@ expect_in() {
 }
 
 expect_in "ess 0." "$("$ess_binary" --version)" "version"
-expect_in "Press one key" "$(echo q | "$ess_binary")" "menu"
-expect_in "Did you mean" "$(echo n | "$ess_binary" wach || true)" "typo asks did-you-mean"
+expect_in "Usage: ess" "$(echo q | "$ess_binary")" "no arguments prints help"
+expect_in "Usage: ess demo" "$("$ess_binary" d --help)" "help works after a command"
+expect_in "ess d <number or name>" "$("$ess_binary" d)" "d lists the demos"
+expect_in "Did you mean:  ess watch" "$("$ess_binary" wach 2>&1 || true)" "a typo gets a suggestion"
+expect_in "Did you mean:  ess d sv" "$("$ess_binary" dsv 2>&1 || true)" "an old form points at the new one"
+expect_in "Unknown option" "$("$ess_binary" r --fast 2>&1 || true)" "an unknown option is an error"
+expect_in "There is no demo" "$("$ess_binary" d 9 2>&1 || true)" "an unknown demo is an error"
 expect_in "no diagram" "$("$ess_binary" r || true)" "run without a diagram says so"
 
 expect_in "made DoorLampSm.cs" "$("$ess_binary" n)" "new downloads StateSmith and makes code"
@@ -44,12 +49,12 @@ demo_dir="$work_dir/demos"
 mkdir -p "$demo_dir"
 cd "$demo_dir"
 if dotnet --version >/dev/null 2>&1; then
-  expect_in "TOGGLE   -> OFF  level=0" "$("$ess_binary" d)" "demo d runs"
-  expect_in "HANGUP  -> PAUSED" "$("$ess_binary" d1)" "demo d1 runs and history resumes"
+  expect_in "TOGGLE   -> OFF  level=0" "$("$ess_binary" d 1)" "demo 1 runs"
+  expect_in "HANGUP  -> PAUSED" "$("$ess_binary" d player)" "demo player runs and history resumes"
 else
-  echo "skip: dotnet not found, demos d and d1 not run"
+  echo "skip: dotnet not found, demos 1 and player not run"
 fi
-expect_in "Expect 3 passed" "$("$ess_binary" d2)" "demo d2 is made"
-expect_in "already here" "$("$ess_binary" d || true)" "a demo never overwrites"
+expect_in "Expect 3 passed" "$("$ess_binary" d 3)" "demo 3 (ecs) is made"
+expect_in "already here" "$("$ess_binary" d 3 || true)" "a demo never overwrites"
 
 echo "all smoke checks passed"

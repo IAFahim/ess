@@ -22,6 +22,7 @@
     <Compile Remove="Demos\**" />
     <EmbeddedResource Include="Demos\light\*" LogicalName="demos/light/%(Filename)%(Extension)" />
     <EmbeddedResource Include="Demos\player\*" LogicalName="demos/player/%(Filename)%(Extension)" />
+    <EmbeddedResource Include="Demos\sv\*" LogicalName="demos/sv/%(Filename)%(Extension)" />
     <EmbeddedResource Include="Demos\ecs\README.txt" LogicalName="demos/ecs/README.txt" />
     <EmbeddedResource Include="..\..\unity\PlayerSm.plantuml" LogicalName="demos/ecs/PlayerSm.plantuml" />
     <EmbeddedResource Include="..\..\unity\EssStructProbe\*" LogicalName="demos/ecs/%(Filename)%(Extension)" />

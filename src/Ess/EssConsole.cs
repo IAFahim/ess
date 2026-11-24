@@ -1,6 +1,6 @@
 namespace Ess;
 
-internal sealed class EssConsole(TextWriter output, bool useColor)
+internal sealed class EssConsole(TextWriter output, TextWriter error, bool useColor)
 {
     public void Line(string text = "") => output.WriteLine(text);
 
@@ -11,6 +11,10 @@ internal sealed class EssConsole(TextWriter output, bool useColor)
     public void Warn(string text) => Tagged("33", "!   ", text);
 
     public void Bad(string text) => Tagged("31", "x   ", text);
+
+    public void UsageError(string text) => error.WriteLine(useColor ? $"\e[31merror:\e[0m {text}" : $"error: {text}");
+
+    public void UsageHint(string text) => error.WriteLine(text);
 
     private void Tagged(string colorCode, string tag, string text)
     {
