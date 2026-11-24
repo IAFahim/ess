@@ -14,6 +14,9 @@ You do not need an IDE. You do not need to remember long commands.
 | `ess g` (or `s`) | git, save | saves to git and pushes to GitHub |
 
 | `ess d`, `d1`, `d2` | demo | makes a demo folder to try (see below) |
+| `ess dsv` | sv demo | clones sv, runs its first example; run again to get the latest sv and reset |
+| `ess n sv` | new sv | clones sv into `./sv` |
+| `ess u sv` | update sv | gets the latest sv (`git pull --ff-only`) |
 
 Type `ess` alone and press one key. The menu stays open until you press `q`. If you mistype (`ess wach`, `ess gti`), `ess` asks what you meant.
 
@@ -32,6 +35,14 @@ Run it from any folder. It makes its own folder (`demo-light`) right there, so y
 | `ess d2` | `demo-unity-ecs` | Unity ECS: copy the folder into `Assets/`, run the EditMode tests, expect 3 passed |
 
 Open the diagram in the demo folder, change it, and run `ess w` there.
+
+## sv
+
+[sv](https://github.com/IAFahim/sv) is a private repo, so git must be logged in to GitHub once: `gh auth login`, then `gh auth setup-git`.
+
+- `ess dsv` makes `demo-sv`, a clone of sv, and runs sv's own first example (`samples/Sv.Hello`). It checks the output against sv's `expected.txt`. Run it again and it fetches the latest sv and resets `demo-sv`, throwing away any changes you made inside it.
+- `ess n sv` clones sv into `./sv` and says how to use it. It never touches an `sv` folder that is already there.
+- `ess u sv` pulls the latest into `./sv`. It stops and tells you if you changed something in sv.
 
 ## Install: one line
 

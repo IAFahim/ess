@@ -16,5 +16,5 @@ internal sealed class DemoCatalog
 
     public DemoInfo? ForLevel(int level) => All.FirstOrDefault(demo => demo.Level == level);
 
-    public string Listing => string.Join("  ", All.Select(demo => demo.Level == 0 ? "d" : $"d{demo.Level}"));
+    public string Listing => string.Join("  ", All.Select(demo => demo.Level == 0 ? "d" : $"d{demo.Level}")) + "  dsv";
 }

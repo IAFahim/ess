@@ -28,6 +28,25 @@ public class DemoTests
         Assert.Equal(expected, request.LevelFrom(typed, [extra]));
     }
 
+    [Theory]
+    [InlineData("dsv", null, true)]
+    [InlineData("DSV", null, true)]
+    [InlineData("demo", "sv", true)]
+    [InlineData("demo", "1", false)]
+    [InlineData("d1", null, false)]
+    [InlineData("d", null, false)]
+    public void TheSvDemoIsDsvOrDemoSv(string typed, string? extra, bool expected)
+    {
+        Assert.Equal(expected, request.IsSvDemo(typed, extra is null ? [] : [extra]));
+    }
+
+    [Fact]
+    public void DsvIsADemoWordButHasNoLevel()
+    {
+        Assert.True(request.IsDemoWord("dsv"));
+        Assert.Null(request.LevelFrom("dsv", []));
+    }
+
     [Fact]
     public void WithNoLevelTheBasicDemoIsMeant()
     {

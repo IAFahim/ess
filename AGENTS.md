@@ -29,6 +29,8 @@ It builds one Native AOT binary, `ess` (about 7 MB, no .NET needed to run it).
 | `ess r` | run | make the code once |
 | `ess w` | watch | make the code on every save; commit and push every good build if the folder is a git repo; key `g` saves now, `q` stops |
 | `ess d`, `d1`, `d2` | demo | make `demo-light`, `demo-player`, `demo-unity-ecs` in the current folder, make the code, run `dotnet run` for d and d1; never overwrite a folder |
+| `ess dsv` | sv demo | clone sv into `demo-sv`, run `samples/Sv.Hello`, compare with its `expected.txt`; again: fetch, `reset --hard @{upstream}`, `clean -fd` (only when `origin` is the sv URL) |
+| `ess n sv` / `ess u sv` | sv | clone into `./sv` (refuse if there); `git pull --ff-only` in `./sv` (refuse and say so if it has local changes) |
 | `ess g` (`s`) | git | git init if needed, commit, create a private GitHub repo if none, push |
 
 Typos are forgiven: capitals, a unique prefix (`wa`), long names (`watch`), and swapped letters (`wach`, `gti`) which ask "did you mean". Anything else shows the menu.
@@ -40,6 +42,7 @@ Typos are forgiven: capitals, a unique prefix (`wa`), long names (`watch`), and 
 | `CommandResolver` | typed text to a command | `string` -> `CommandResolution` | `CommandResolverTests` |
 | `EditDistance` | how far apart two words are | two `string` -> `int` | swap counts as 1 |
 | `DemoRequest`, `DemoCatalog` | typed word to a demo level; which demos exist | `string` -> `int?`; level -> `DemoInfo` | `DemoTests`; the demo files are embedded from `src/Ess/Demos` and `unity/` (one source for the ECS demo and its Unity probe) |
+| `SvRepo` | clone, recognise and update one git clone | folder + source URL -> bool, printed result | `SvRepoTests` against a local bare repo (clone, already latest, pull, refuse dirty, reset) |
 | `StructConverter` | StateSmith's class into a C# 9 safe partial struct | generated `.cs` text -> `StructConversion` | compiled with Roslyn at C# 9, `IsUnmanagedType`, same trace as the class; real fixtures in `Fixtures/generated` |
 | `GenerationOutputJudge` | did StateSmith work, which files, what went wrong | `ProcessResult` -> bool, files, text | real recorded outputs in `tests/Ess.Tests/Fixtures` |
 | `StateSmithAssets` | which download for which computer | `HostPlatform` -> asset + SHA-256 | `StateSmithAssetsTests` |
@@ -52,6 +55,7 @@ The rest (`StateSmithTool`, `CodeGenerator`, `GitSaver`, `Subprocess`, the comma
 - No code comments. Names say the role.
 - Zero warnings. `TreatWarningsAsErrors` is on, which also makes NuGet audit fail the build. Build with an SDK whose bundled runtime is 10.0.14 or newer: 10.0.12 links a Brotli decoder with a known high severity bug (GHSA-p3jp-9v83-76w9) into Native AOT binaries.
 - No mutable statics.
+- sv (`IAFahim/sv`) is private and is only ever cloned and read from `ess`: never edit, commit or push inside a clone. `ess dsv` resets only a folder named `demo-sv` whose `origin` equals the sv URL; anything else is refused. The sv URL lives in `Program.cs` only. `scripts/smoke.sh` does not run the sv commands because they need network and a GitHub login; they were run by hand against the real repo.
 - The machine is always a `partial struct`. The converter refuses (and nothing is committed) when the class line is not found exactly once, the constructor has code, or `NameSpace` ends with `;` (file-scoped namespaces are C# 10). A struct field cannot have an initializer and a struct cannot have a parameterless constructor in C# 9, which is why both are removed. Never enable the `outputEventIdToStringFunction` settings: they return strings, which Burst cannot run.
 - One place for the StateSmith version: `StateSmithAssets.cs`. To bump it, read the new digests with `gh api repos/StateSmith/StateSmith/releases/tags/v<version> --jq '.assets[] | [.name, .digest] | @tsv'`, then re-record both fixtures in `tests/Ess.Tests/Fixtures` from the new `ss.cli` and rerun the tests.
 - `ss.cli run` exits 0 even when a diagram fails to parse (its `Program.cs` overwrites the exit code that `RunHandler` sets, see the TODO there). Success is judged from the output text ("Finished with failure"), never from the exit code alone. A broken diagram must never be committed or pushed.

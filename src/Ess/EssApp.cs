@@ -10,6 +10,7 @@ internal sealed class EssApp(
     WatchCommand watchCommand,
     GitCommand gitCommand,
     DemoCommand demoCommand,
+    UpdateCommand updateCommand,
     string version)
 {
     private const char YesKey = 'y';
@@ -110,6 +111,7 @@ internal sealed class EssApp(
             EssCommand.Watch => watchCommand.Run(folder, cancel),
             EssCommand.Git => gitCommand.Run(folder, cancel),
             EssCommand.Demo => demoCommand.Run(typed, extraArguments, folder, cancel),
+            EssCommand.Update => updateCommand.Run(extraArguments, folder, cancel),
             _ => throw new ArgumentOutOfRangeException(nameof(command), command, "Unknown ess command"),
         };
     }

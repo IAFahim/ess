@@ -5,10 +5,16 @@ internal sealed class NewCommand(
     StateSmithTool tool,
     StarterDiagram starter,
     MachineNames machineNames,
+    SvCommand sv,
     EssConsole console)
 {
     public async Task<int> Run(string[] extraArguments, string folder, CancellationToken cancel)
     {
+        if (extraArguments.Length > 0 && extraArguments[0].Trim().Equals("sv", StringComparison.OrdinalIgnoreCase))
+        {
+            return await sv.CreateHere(folder, cancel);
+        }
+
         var machineName = extraArguments.Length > 0
             ? machineNames.ToIdentifier(extraArguments[0])
             : machineNames.DefaultForFolder(folder);

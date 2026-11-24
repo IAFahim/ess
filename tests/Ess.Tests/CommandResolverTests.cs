@@ -25,6 +25,10 @@ public class CommandResolverTests
     [InlineData("D2", EssCommand.Demo)]
     [InlineData("demo", EssCommand.Demo)]
     [InlineData("demos", EssCommand.Demo)]
+    [InlineData("dsv", EssCommand.Demo)]
+    [InlineData("u", EssCommand.Update)]
+    [InlineData("update", EssCommand.Update)]
+    [InlineData("up", EssCommand.Update)]
     public void ExactWordsRunTheCommand(string typed, EssCommand expected)
     {
         var resolution = resolver.Resolve(typed);

@@ -6,12 +6,18 @@ internal sealed class DemoCommand(
     DemoFiles files,
     CodeGenerator generator,
     Subprocess subprocess,
+    SvCommand sv,
     EssConsole console)
 {
     private readonly string[] dotnetRunArguments = ["run", "--nologo"];
 
     public async Task<int> Run(string typed, IReadOnlyList<string> extraArguments, string folder, CancellationToken cancel)
     {
+        if (request.IsSvDemo(typed, extraArguments))
+        {
+            return await sv.Demo(folder, cancel);
+        }
+
         var level = request.LevelFrom(typed, extraArguments);
         var demo = level is null ? null : demos.ForLevel(level.Value);
 
@@ -83,5 +89,7 @@ internal sealed class DemoCommand(
         {
             console.Line($"  {(demo.Level == 0 ? "d" : "d" + demo.Level),-3} {demo.Title}");
         }
+
+        console.Line("  dsv sv: clone sv and run its first example");
     }
 }
