@@ -40,4 +40,16 @@ expect_in "Pushed to GitHub" "$("$ess_binary" g)" "g pushes to the remote"
 expect_in "Nothing new" "$("$ess_binary" g)" "g again has nothing new"
 
 git -C "$remote" log --oneline main | grep -q "ess: save" && echo "pass: remote has the commit"
+demo_dir="$work_dir/demos"
+mkdir -p "$demo_dir"
+cd "$demo_dir"
+if dotnet --version >/dev/null 2>&1; then
+  expect_in "TOGGLE   -> OFF  level=0" "$("$ess_binary" d)" "demo d runs"
+  expect_in "HANGUP  -> PAUSED" "$("$ess_binary" d1)" "demo d1 runs and history resumes"
+else
+  echo "skip: dotnet not found, demos d and d1 not run"
+fi
+expect_in "Expect 3 passed" "$("$ess_binary" d2)" "demo d2 is made"
+expect_in "already here" "$("$ess_binary" d || true)" "a demo never overwrites"
+
 echo "all smoke checks passed"

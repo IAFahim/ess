@@ -9,6 +9,7 @@ internal sealed class EssApp(
     RunCommand runCommand,
     WatchCommand watchCommand,
     GitCommand gitCommand,
+    DemoCommand demoCommand,
     string version)
 {
     private const char YesKey = 'y';
@@ -23,7 +24,7 @@ internal sealed class EssApp(
         switch (resolution.Kind)
         {
             case ResolutionKind.RunCommand:
-                return await Execute(resolution.Command!.Command, extraArguments, folder, cancel);
+                return await Execute(resolution.Command!.Command, typed, extraArguments, folder, cancel);
 
             case ResolutionKind.ShowVersion:
                 console.Line($"ess {version}");
@@ -52,7 +53,7 @@ internal sealed class EssApp(
             return 1;
         }
 
-        return await Execute(guess.Command, extraArguments, folder, cancel);
+        return await Execute(guess.Command, guess.Key, extraArguments, folder, cancel);
     }
 
     private async Task<int> ChooseFromMenu(string folder, CancellationToken cancel)
@@ -78,7 +79,7 @@ internal sealed class EssApp(
             }
 
             console.Line();
-            lastExitCode = await Execute(resolution.Command!.Command, [], folder, cancel);
+            lastExitCode = await Execute(resolution.Command!.Command, pressed.ToString(), [], folder, cancel);
             console.Line();
         }
 
@@ -100,7 +101,7 @@ internal sealed class EssApp(
         console.Line($"Press one key  ({QuitKey} to quit):");
     }
 
-    private Task<int> Execute(EssCommand command, string[] extraArguments, string folder, CancellationToken cancel)
+    private Task<int> Execute(EssCommand command, string typed, string[] extraArguments, string folder, CancellationToken cancel)
     {
         return command switch
         {
@@ -108,6 +109,7 @@ internal sealed class EssApp(
             EssCommand.Run => runCommand.Run(folder, cancel),
             EssCommand.Watch => watchCommand.Run(folder, cancel),
             EssCommand.Git => gitCommand.Run(folder, cancel),
+            EssCommand.Demo => demoCommand.Run(typed, extraArguments, folder, cancel),
             _ => throw new ArgumentOutOfRangeException(nameof(command), command, "Unknown ess command"),
         };
     }

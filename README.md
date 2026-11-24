@@ -13,7 +13,27 @@ You do not need an IDE. You do not need to remember long commands.
 | `ess w` | watch | makes the code every time you save. Press `g` to save to GitHub now, `q` to stop |
 | `ess g` (or `s`) | git, save | saves to git and pushes to GitHub |
 
+| `ess d`, `d1`, `d2` | demo | makes a demo folder to try (see below) |
+
 Type `ess` alone and press one key. The menu stays open until you press `q`. If you mistype (`ess wach`, `ess gti`), `ess` asks what you meant.
+
+## Try a demo
+
+```
+mkdir try
+cd try
+ess d
+```
+
+Each demo makes its own folder, makes the code, and (for `d` and `d1`) runs it with `dotnet run` so you see the result at once. It never overwrites a folder that is already there.
+
+| Type | Folder | Shows |
+|---|---|---|
+| `ess d` | `demo-light` | a lamp: two states and a counter |
+| `ess d1` | `demo-player` | nested states, a choice, history, and your own code beside the made struct |
+| `ess d2` | `demo-unity-ecs` | Unity ECS: copy the folder into `Assets/`, run the EditMode tests, expect 3 passed |
+
+Open the diagram in the demo folder, change it, and run `ess w` there.
 
 ## Install: one line
 

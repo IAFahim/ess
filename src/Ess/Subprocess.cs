@@ -33,6 +33,7 @@ internal sealed class Subprocess
 
         startInfo.Environment["GIT_TERMINAL_PROMPT"] = "0";
         startInfo.Environment["GH_PROMPT_DISABLED"] = "1";
+        startInfo.Environment["DOTNET_NOLOGO"] = "1";
 
         var collected = new StringBuilder();
         var gate = new object();

@@ -6,7 +6,8 @@ var useColor = !Console.IsOutputRedirected
 
 var console = new EssConsole(Console.Out, useColor);
 var catalog = new CommandCatalog();
-var resolver = new CommandResolver(catalog, new EditDistance());
+var demoRequest = new DemoRequest();
+var resolver = new CommandResolver(catalog, new EditDistance(), demoRequest);
 var diagrams = new DiagramFiles();
 var subprocess = new Subprocess();
 
@@ -27,6 +28,7 @@ var app = new EssApp(
     new RunCommand(generator),
     new WatchCommand(generator, diagrams, gitSaver, keys, console),
     new GitCommand(gitSaver),
+    new DemoCommand(new DemoCatalog(), demoRequest, new DemoFiles(), generator, subprocess, console),
     new AppVersion().Current);
 
 using var cancelSource = new CancellationTokenSource();

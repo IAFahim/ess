@@ -11,7 +11,7 @@ internal enum ResolutionKind
 
 internal readonly record struct CommandResolution(ResolutionKind Kind, CommandInfo? Command);
 
-internal sealed class CommandResolver(CommandCatalog catalog, EditDistance editDistance)
+internal sealed class CommandResolver(CommandCatalog catalog, EditDistance editDistance, DemoRequest demoRequest)
 {
     private const int LongestTypoWeForgive = 2;
     private const int ShortestWordWeGuessFor = 3;
@@ -32,6 +32,11 @@ internal sealed class CommandResolver(CommandCatalog catalog, EditDistance editD
         if (versionWords.Contains(wanted))
         {
             return new CommandResolution(ResolutionKind.ShowVersion, null);
+        }
+
+        if (demoRequest.IsDemoWord(wanted))
+        {
+            return new CommandResolution(ResolutionKind.RunCommand, catalog.All.First(command => command.Command == EssCommand.Demo));
         }
 
         var exactMatch = catalog.All.FirstOrDefault(command => WordsOf(command).Contains(wanted));

@@ -12,7 +12,7 @@ internal sealed class GitSaver(Subprocess subprocess, EssConsole console, RepoNa
 {
     private const string IgnoreFileName = ".gitignore";
 
-    private readonly string[] namesGitShouldIgnore = [".DS_Store", "Thumbs.db", "*.swp", "*~"];
+    private readonly string[] namesGitShouldIgnore = [".DS_Store", "Thumbs.db", "*.swp", "*~", "bin/", "obj/"];
 
     public bool IsOwnRepository(string folder) => Directory.Exists(Path.Combine(folder, ".git"));
 

@@ -1,0 +1,25 @@
+@startuml LightSm
+
+[*] --> Off
+
+Off : enter / level = 0;
+Off --> On : TOGGLE
+
+On : enter / level = 1;
+On : TICK [level < 3] / level += 1;
+On --> Off : TOGGLE
+
+/'! $CONFIG : toml
+[RenderConfig]
+AutoExpandedVars = "public int level;"
+[RenderConfig.CSharp]
+NameSpace = "Machines"
+[SmRunnerSettings]
+transpilerId = "CSharp"
+[SmRunnerSettings.smDesignDescriber]
+enabled = true
+[SmRunnerSettings.smDesignDescriber.outputSections]
+beforeTransformations = false
+afterTransformations = true
+'/
+@enduml

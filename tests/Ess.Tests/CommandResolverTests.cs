@@ -4,7 +4,7 @@ namespace Ess.Tests;
 
 public class CommandResolverTests
 {
-    private readonly CommandResolver resolver = new(new CommandCatalog(), new EditDistance());
+    private readonly CommandResolver resolver = new(new CommandCatalog(), new EditDistance(), new DemoRequest());
 
     [Theory]
     [InlineData("n", EssCommand.New)]
@@ -20,6 +20,11 @@ public class CommandResolverTests
     [InlineData("save", EssCommand.Git)]
     [InlineData("s", EssCommand.Git)]
     [InlineData("in", EssCommand.New)]
+    [InlineData("d", EssCommand.Demo)]
+    [InlineData("d1", EssCommand.Demo)]
+    [InlineData("D2", EssCommand.Demo)]
+    [InlineData("demo", EssCommand.Demo)]
+    [InlineData("demos", EssCommand.Demo)]
     public void ExactWordsRunTheCommand(string typed, EssCommand expected)
     {
         var resolution = resolver.Resolve(typed);
@@ -70,6 +75,7 @@ public class CommandResolverTests
     [InlineData("gti", EssCommand.Git)]
     [InlineData("rnu", EssCommand.Run)]
     [InlineData("neww", EssCommand.New)]
+    [InlineData("dmeo", EssCommand.Demo)]
     public void SmallTyposAskDidYouMean(string typed, EssCommand expected)
     {
         var resolution = resolver.Resolve(typed);

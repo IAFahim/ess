@@ -28,6 +28,7 @@ It builds one Native AOT binary, `ess` (about 7 MB, no .NET needed to run it).
 | `ess n [Name]` (`in`) | new | starter diagram, get StateSmith, make the code |
 | `ess r` | run | make the code once |
 | `ess w` | watch | make the code on every save; commit and push every good build if the folder is a git repo; key `g` saves now, `q` stops |
+| `ess d`, `d1`, `d2` | demo | make `demo-light`, `demo-player`, `demo-unity-ecs` in the current folder, make the code, run `dotnet run` for d and d1; never overwrite a folder |
 | `ess g` (`s`) | git | git init if needed, commit, create a private GitHub repo if none, push |
 
 Typos are forgiven: capitals, a unique prefix (`wa`), long names (`watch`), and swapped letters (`wach`, `gti`) which ask "did you mean". Anything else shows the menu.
@@ -38,6 +39,7 @@ Typos are forgiven: capitals, a unique prefix (`wa`), long names (`watch`), and 
 |---|---|---|---|
 | `CommandResolver` | typed text to a command | `string` -> `CommandResolution` | `CommandResolverTests` |
 | `EditDistance` | how far apart two words are | two `string` -> `int` | swap counts as 1 |
+| `DemoRequest`, `DemoCatalog` | typed word to a demo level; which demos exist | `string` -> `int?`; level -> `DemoInfo` | `DemoTests`; the demo files are embedded from `src/Ess/Demos` and `unity/` (one source for the ECS demo and its Unity probe) |
 | `StructConverter` | StateSmith's class into a C# 9 safe partial struct | generated `.cs` text -> `StructConversion` | compiled with Roslyn at C# 9, `IsUnmanagedType`, same trace as the class; real fixtures in `Fixtures/generated` |
 | `GenerationOutputJudge` | did StateSmith work, which files, what went wrong | `ProcessResult` -> bool, files, text | real recorded outputs in `tests/Ess.Tests/Fixtures` |
 | `StateSmithAssets` | which download for which computer | `HostPlatform` -> asset + SHA-256 | `StateSmithAssetsTests` |
