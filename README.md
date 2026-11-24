@@ -20,12 +20,10 @@ Type `ess` alone and press one key. The menu stays open until you press `q`. If 
 ## Try a demo
 
 ```
-mkdir try
-cd try
 ess d
 ```
 
-Each demo makes its own folder, makes the code, and (for `d` and `d1`) runs it with `dotnet run` so you see the result at once. It never overwrites a folder that is already there.
+Run it from any folder. It makes its own folder (`demo-light`) right there, so you do not need to make or enter one first. Each demo makes the code, and (for `d` and `d1`) runs it with `dotnet run` so you see the result at once. It never overwrites a folder that is already there.
 
 | Type | Folder | Shows |
 |---|---|---|

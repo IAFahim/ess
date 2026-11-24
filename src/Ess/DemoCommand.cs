@@ -33,7 +33,7 @@ internal sealed class DemoCommand(
         console.Step($"Demo {(demo.Level == 0 ? "d" : "d" + demo.Level)}: {demo.Title}");
 
         var written = await files.WriteTo(demoFolder, demo.ResourceFolder, cancel);
-        console.Good($"made folder {demo.FolderName}  ({written.Count} files)");
+        console.Good($"made folder {demoFolder}  ({written.Count} files)");
 
         if (!await generator.Make(demoFolder, cancel))
         {
@@ -58,7 +58,7 @@ internal sealed class DemoCommand(
     private async Task RunWithDotnet(DemoInfo demo, string demoFolder, CancellationToken cancel)
     {
         console.Line();
-        console.Step($"Running it:  cd {demo.FolderName} && dotnet run   (first time takes a few seconds)");
+        console.Step($"Running it:  cd {demoFolder} && dotnet run   (first time takes a few seconds)");
 
         var result = await subprocess.Run("dotnet", dotnetRunArguments, demoFolder, cancel);
         console.Line();
