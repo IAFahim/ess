@@ -6,16 +6,17 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <RootNamespace>App</RootNamespace>
-    <SvPackNamespace>App.Sv</SvPackNamespace>
+    <RootNamespace>{{Name}}</RootNamespace>
+    <SvPackNamespace>{{Name}}.Sv</SvPackNamespace>
     <SvPackOutput>$(MSBuildProjectDirectory)/obj/SvPack/</SvPackOutput>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../sv/src/Sv.Host/Sv.Host.csproj" />
-    <ProjectReference Include="../sv/src/Sv.Pack/Sv.Pack.csproj" ReferenceOutputAssembly="false" />
+    <Compile Remove="lib/**" />
+    <ProjectReference Include="lib/sv/src/Sv.Host/Sv.Host.csproj" />
+    <ProjectReference Include="lib/sv/src/Sv.Pack/Sv.Pack.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
-  <Import Project="../sv/build/Sv.Pack.targets" />
+  <Import Project="lib/sv/build/Sv.Pack.targets" />
 
 </Project>

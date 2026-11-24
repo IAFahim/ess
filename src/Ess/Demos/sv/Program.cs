@@ -1,4 +1,4 @@
-using App.Sv;
+using {{Name}}.Sv;
 using Machines;
 using Sv;
 using Sv.Host;

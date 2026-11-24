@@ -5,35 +5,46 @@ internal sealed class SvCommand(
     DemoFiles files,
     CodeGenerator generator,
     Subprocess subprocess,
+    MachineNames machineNames,
     EssConsole console)
 {
-    public const string CloneFolderName = "sv";
-    public const string AppFolderName = "app";
+    public const string SvFolder = "lib/sv";
     public const string DemoFolderName = "demo-sv";
 
     private const string DemoMarkerFileName = ".ess-demo";
     private const string ResourceFolder = "sv";
     private const string SamplePackFolder = "samples/Sv.Hello/pack";
+    private const string NamePlaceholder = "{{Name}}";
     private const string WoundedState = "StateSmith: WOUNDED";
     private const string HealthyState = "StateSmith: HEALTHY";
 
-    private readonly string[] runArguments = ["run", "-c", "Release", "--nologo", "--project", AppFolderName];
+    private readonly string[] runArguments = ["run", "-c", "Release", "--nologo"];
+
+    private readonly Dictionary<string, string> renamedOnWrite = new()
+    {
+        ["Host.csproj"] = NamePlaceholder + ".csproj",
+        ["gitignore.txt"] = ".gitignore",
+    };
 
     public async Task<int> CreateHere(string folder, CancellationToken cancel)
     {
-        var existing = new[] { CloneFolderName, AppFolderName }.Where(name => Directory.Exists(Path.Combine(folder, name))).ToList();
-        if (existing.Count > 0)
+        var alreadyHere = Directory.Exists(Path.Combine(folder, SvFolder))
+            || Directory.EnumerateFiles(folder, "*.csproj").Any()
+            || File.Exists(Path.Combine(folder, "Program.cs"));
+
+        if (alreadyHere)
         {
-            console.Warn($"{string.Join(" and ", existing)} already here. I did not touch it. To get the latest sv:  ess u sv");
+            console.Warn("This folder already has a project or sv. I did not touch it. To get the latest sv:  ess u sv");
             return 1;
         }
 
-        return await MakeProject(folder, refreshSv: false, cancel) ? 0 : 1;
+        var name = machineNames.ToIdentifier(Path.GetFileName(Path.TrimEndingDirectorySeparator(folder)));
+        return await MakeProject(folder, name, refresh: false, nestingIsFine: false, cancel) ? 0 : 1;
     }
 
     public async Task<int> Update(string folder, CancellationToken cancel)
     {
-        var inside = Path.Combine(folder, CloneFolderName);
+        var inside = Path.Combine(folder, SvFolder);
 
         if (await repo.IsSvClone(inside, cancel))
         {
@@ -71,7 +82,8 @@ internal sealed class SvCommand(
             await File.WriteAllTextAsync(markerPath, "made by ess d sv. ess d sv again resets this folder.\n", cancel);
         }
 
-        if (!await MakeProject(demoFolder, refreshSv: refresh, cancel))
+        var name = machineNames.ToIdentifier(DemoFolderName);
+        if (!await MakeProject(demoFolder, name, refresh, nestingIsFine: true, cancel))
         {
             return 1;
         }
@@ -81,31 +93,30 @@ internal sealed class SvCommand(
         return 0;
     }
 
-    private async Task<bool> MakeProject(string projectFolder, bool refreshSv, CancellationToken cancel)
+    private async Task<bool> MakeProject(string projectFolder, string name, bool refresh, bool nestingIsFine, CancellationToken cancel)
     {
-        var cloneFolder = Path.Combine(projectFolder, CloneFolderName);
-        var appFolder = Path.Combine(projectFolder, AppFolderName);
+        var svFolder = Path.Combine(projectFolder, SvFolder);
 
-        var gotSv = Directory.Exists(cloneFolder) && refreshSv
-            ? await repo.Update(cloneFolder, throwAwayLocalChanges: true, cancel)
-            : await repo.Clone(projectFolder, CloneFolderName, cancel);
+        var gotSv = refresh && Directory.Exists(svFolder)
+            ? await repo.Update(svFolder, throwAwayLocalChanges: true, cancel)
+            : await repo.AddAsSubmodule(projectFolder, SvFolder, allowInsideAnotherRepo: nestingIsFine, cancel);
 
         if (!gotSv)
         {
             return false;
         }
 
-        var written = await files.WriteTo(appFolder, ResourceFolder, cancel);
-        var packCopied = CopyPackFromSv(cloneFolder, appFolder);
-        if (!packCopied)
+        var written = await WriteHostFiles(projectFolder, name, cancel);
+
+        if (!CopyPackFromSv(svFolder, projectFolder))
         {
             console.Bad($"This sv has no {SamplePackFolder}, so I have no pack to start from.");
             return false;
         }
 
-        console.Good($"made {appFolder}  ({written.Count} files and sv's pack)");
+        console.Good($"made the project in {projectFolder}  ({written.Count} files and sv's pack)");
 
-        if (!await generator.Make(appFolder, cancel))
+        if (!await generator.Make(projectFolder, cancel))
         {
             return false;
         }
@@ -114,20 +125,34 @@ internal sealed class SvCommand(
         return true;
     }
 
-    private static bool CopyPackFromSv(string cloneFolder, string appFolder)
+    private async Task<IReadOnlyList<string>> WriteHostFiles(string projectFolder, string name, CancellationToken cancel)
     {
-        var samplePack = Path.Combine(cloneFolder, SamplePackFolder);
+        var written = new List<string>();
+
+        foreach (var (fileName, content) in await files.ReadAll(ResourceFolder, cancel))
+        {
+            var targetName = renamedOnWrite.GetValueOrDefault(fileName, fileName).Replace(NamePlaceholder, name, StringComparison.Ordinal);
+            await File.WriteAllTextAsync(Path.Combine(projectFolder, targetName), content.Replace(NamePlaceholder, name, StringComparison.Ordinal), cancel);
+            written.Add(targetName);
+        }
+
+        return written;
+    }
+
+    private static bool CopyPackFromSv(string svFolder, string projectFolder)
+    {
+        var samplePack = Path.Combine(svFolder, SamplePackFolder);
         if (!Directory.Exists(samplePack))
         {
             return false;
         }
 
-        var appPack = Path.Combine(appFolder, "pack");
-        Directory.CreateDirectory(appPack);
+        var projectPack = Path.Combine(projectFolder, "pack");
+        Directory.CreateDirectory(projectPack);
 
         foreach (var packFile in Directory.EnumerateFiles(samplePack, "*.sv.json"))
         {
-            File.Copy(packFile, Path.Combine(appPack, Path.GetFileName(packFile)), overwrite: true);
+            File.Copy(packFile, Path.Combine(projectPack, Path.GetFileName(packFile)), overwrite: true);
         }
 
         return true;
@@ -136,7 +161,7 @@ internal sealed class SvCommand(
     private async Task Run(string projectFolder, CancellationToken cancel)
     {
         console.Line();
-        console.Step("Running it (the first build takes a minute):  dotnet run -c Release --project app");
+        console.Step("Running it (the first build takes a minute):  dotnet run -c Release");
 
         var result = await subprocess.Run("dotnet", runArguments, projectFolder, cancel);
         console.Line();

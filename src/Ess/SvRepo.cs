@@ -4,7 +4,8 @@ internal sealed class SvRepo(Subprocess subprocess, EssConsole console, string s
 {
     public async Task<bool> IsSvClone(string folder, CancellationToken cancel)
     {
-        if (!Directory.Exists(Path.Combine(folder, ".git")))
+        var gitPath = Path.Combine(folder, ".git");
+        if (!Directory.Exists(gitPath) && !File.Exists(gitPath))
         {
             return false;
         }
@@ -13,19 +14,24 @@ internal sealed class SvRepo(Subprocess subprocess, EssConsole console, string s
         return origin.Succeeded && origin.Output.Trim() == sourceUrl;
     }
 
-    public async Task<bool> Clone(string parentFolder, string cloneFolderName, CancellationToken cancel)
+    public async Task<bool> AddAsSubmodule(string projectFolder, string relativePath, bool allowInsideAnotherRepo, CancellationToken cancel)
     {
-        console.Step("Getting sv from GitHub.");
-
-        var cloned = await Git(parentFolder, cancel, "clone", sourceUrl, cloneFolderName);
-        if (!cloned.Succeeded)
+        if (!await EnsureOwnRepository(projectFolder, allowInsideAnotherRepo, cancel))
         {
-            console.Bad("Could not get sv. Are you online?");
-            console.Line(cloned.Output.Trim());
             return false;
         }
 
-        console.Good($"sv is ready at {Path.Combine(parentFolder, cloneFolderName)}");
+        console.Step("Getting sv from GitHub, as a git submodule in " + relativePath);
+
+        var added = await Git(projectFolder, cancel, "submodule", "add", sourceUrl, relativePath);
+        if (!added.Succeeded)
+        {
+            console.Bad("Could not get sv. Are you online?");
+            console.Line(added.Output.Trim());
+            return false;
+        }
+
+        console.Good($"sv is ready at {Path.Combine(projectFolder, relativePath)}");
         return true;
     }
 
@@ -36,14 +42,14 @@ internal sealed class SvRepo(Subprocess subprocess, EssConsole console, string s
         var fetched = await Git(cloneFolder, cancel, "fetch", "origin");
         if (!fetched.Succeeded)
         {
-            console.Bad("Could not reach GitHub. Are you online and logged in?");
+            console.Bad("Could not reach GitHub. Are you online?");
             console.Line(fetched.Output.Trim());
             return false;
         }
 
         var moved = throwAwayLocalChanges
             ? await ResetToLatest(cloneFolder, cancel)
-            : await Git(cloneFolder, cancel, "pull", "--ff-only");
+            : await Git(cloneFolder, cancel, "merge", "--ff-only", "origin/HEAD");
 
         if (!moved.Succeeded)
         {
@@ -66,9 +72,36 @@ internal sealed class SvRepo(Subprocess subprocess, EssConsole console, string s
         return true;
     }
 
+    private async Task<bool> EnsureOwnRepository(string folder, bool allowInsideAnotherRepo, CancellationToken cancel)
+    {
+        if (Directory.Exists(Path.Combine(folder, ".git")))
+        {
+            return true;
+        }
+
+        var prefix = await Git(folder, cancel, "rev-parse", "--show-prefix");
+        var insideAnotherRepo = prefix.Succeeded;
+
+        if (insideAnotherRepo && !allowInsideAnotherRepo)
+        {
+            console.Bad("This folder is inside a bigger git project. Make a folder just for this and run ess there.");
+            return false;
+        }
+
+        var started = await Git(folder, cancel, "init", "-b", "main");
+        if (!started.Succeeded)
+        {
+            console.Bad(started.Output.Trim());
+            return false;
+        }
+
+        console.Step("Started a git project in this folder.");
+        return true;
+    }
+
     private async Task<ProcessResult> ResetToLatest(string cloneFolder, CancellationToken cancel)
     {
-        var reset = await Git(cloneFolder, cancel, "reset", "--hard", "@{upstream}");
+        var reset = await Git(cloneFolder, cancel, "reset", "--hard", "origin/HEAD");
         if (!reset.Succeeded)
         {
             return reset;

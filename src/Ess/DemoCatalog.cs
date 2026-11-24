@@ -20,7 +20,7 @@ internal sealed class DemoCatalog
             ["Read README.txt in the folder. It points at the part that surprises people.", "Edit PlayerSm.plantuml, then:  cd demo-player  then  ess w"]),
         new(3, "ecs", "demo-unity-ecs", "Unity ECS: the struct as a component, driven by a Burst job", "ecs", false, false,
             ["Copy the folder into the Assets folder of a Unity 7 project.", "Then Window > General > Test Runner > EditMode > Run All. Expect 3 passed.", "README.txt in the folder lists the packages it needs."]),
-        new(4, "sv", "demo-sv", "sv and StateSmith together: sv keeps the numbers, a StateSmith struct follows its events", "", false, true, []),
+        new(4, "sv", "demo-sv", "one .NET project linking a StateSmith machine and sv (in lib/sv). Neither knows the other", "", false, true, []),
     ];
 
     public IReadOnlyList<string> ListLines()

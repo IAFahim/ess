@@ -1,22 +1,20 @@
-sv and StateSmith together.
+StateSmith and sv, in one ordinary .NET project.
 
-  sv          keeps the numbers (health) and says when something happens (the low-health event).
-  StateSmith  keeps the behaviour: Healthy, Wounded. HeroSm.plantuml is the diagram.
-  Program.cs  is the glue. It asks sv for its events and sends them to the StateSmith struct.
+  HeroSm.plantuml   the StateSmith diagram. You edit this. ess makes HeroSm.cs from it.
+  lib/sv/           the sv engine, a git submodule. Never edit it.
+  pack/             sv's data: values, rules, templates.
+  Program.cs        the host. It is the only place that knows both.
+  *.csproj          the project. It links lib/sv and compiles the made code.
 
-Files
-  sv/                the sv engine (a git clone). Never edit it.
-  app/pack/          sv's data: values, rules, templates. Copied from sv's own sample.
-  app/HeroSm.plantuml  the diagram. Edit this and run  ess w  in the app folder.
-  app/HeroSm.cs      made by ess. A struct. Do not edit.
-  app/Program.cs     the glue.
+StateSmith (HeroSm) does not know sv exists. sv does not know StateSmith exists.
+The host asks sv for its events and sends them to the StateSmith machine.
 
 Run it
-  dotnet run -c Release --project app
+  dotnet run -c Release
 
-Try
-  Open app/pack/rules.sv.json and change a number, run it again. sv's numbers change.
-  Open app/HeroSm.plantuml and add a state, run  ess r  in the app folder, then use it in Program.cs.
+Change it
+  ess w            make HeroSm.cs again every time you save HeroSm.plantuml
+  pack/*.sv.json   change sv's numbers, run again
 
 Get the latest sv
   ess u sv

@@ -10,7 +10,7 @@ You do not need an IDE. You do not need to remember long commands.
 
 | Type | Short | Does |
 |---|---|---|
-| `ess new [what]` | `n`, `in` | makes a starter diagram here. `ess n sv` gets the sv engine too |
+| `ess new [what]` | `n`, `in` | makes a starter diagram here. `ess n sv` makes a project linking StateSmith and sv |
 | `ess run` | `r` | makes the code once |
 | `ess watch` | `w` | makes the code every time you save. While watching: `g` saves to GitHub now, `q` stops |
 | `ess git` | `g`, `s` | saves to git and pushes to GitHub |
@@ -39,7 +39,7 @@ Each demo makes its own folder right there, makes the code, and (for 1, 2 and 4)
 | `1`, `light` | `demo-light` | a lamp: two states and a counter |
 | `2`, `player` | `demo-player` | nested states, a choice, history, and your own code beside the made struct |
 | `3`, `ecs` | `demo-unity-ecs` | Unity ECS: copy the folder into `Assets/`, run the EditMode tests, expect 3 passed |
-| `4`, `sv` | `demo-sv` | sv and StateSmith together: sv keeps the numbers and fires events, a StateSmith struct follows them |
+| `4`, `sv` | `demo-sv` | a .NET project linking a StateSmith machine and sv (in `lib/sv`). Neither knows the other |
 
 Open the diagram in the demo folder, change it, and run `ess w` there.
 
@@ -47,9 +47,20 @@ Open the diagram in the demo folder, change it, and run `ess w` there.
 
 [sv](https://github.com/IAFahim/sv) is a public repo, so these need only `git` and a connection. No login.
 
-- `ess d sv` makes `demo-sv`: a clone of sv in `demo-sv/sv`, and a small project in `demo-sv/app` that uses both. sv keeps the hero's health and fires its low-health event. A StateSmith struct (`HeroSm`) follows that event: Healthy, Wounded, Healthy. Run it again and it gets the latest sv and resets the whole folder, throwing away any changes you made inside it.
-- `ess n sv` makes the same two folders (`sv` and `app`) in the current folder. It never touches ones that are already there.
-- `ess u sv` pulls the latest into `./sv`. It stops and tells you if you changed something in sv.
+StateSmith and sv are two libraries that do not know each other. One ordinary .NET project links them. `ess` makes that project:
+
+```
+demo-sv/
+  DemoSv.csproj       the project. Run it with:  dotnet run -c Release
+  HeroSm.plantuml     the StateSmith diagram (ess makes HeroSm.cs from it)
+  Program.cs          the host. The only code that knows both
+  pack/               sv's data: values, rules, templates
+  lib/sv/             sv itself, a git submodule. Never edit it
+```
+
+- `ess d sv` makes `demo-sv` and runs it. sv keeps the hero's health and fires its low-health event. The host sends that event to the StateSmith struct (`HeroSm`): Healthy, Wounded, Healthy. Run it again and it gets the latest sv and resets the whole folder, throwing away any changes you made inside it.
+- `ess n sv` makes the same project in the current folder (it starts a git repo there if there is none). It never touches a folder that already has a project or sv.
+- `ess u sv` brings `lib/sv` up to the latest (a fast-forward). It stops and tells you if you changed something in sv.
 
 ## Install: one line
 

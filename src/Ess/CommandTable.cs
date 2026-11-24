@@ -39,7 +39,7 @@ internal sealed class CommandTable
     public IReadOnlyList<CommandSpec> All { get; } =
     [
         new(EssCommand.New, "new", ["n", "in"], "[what]", 0, 1,
-            "Make a starter diagram in this folder. \"ess n sv\" gets the sv engine instead. The word sv is reserved, it cannot be a machine name.",
+            "Make a starter diagram in this folder. \"ess n sv\" makes a .NET project that links a StateSmith machine and the sv engine (in lib/sv). The word sv is reserved, it cannot be a machine name.",
             ["ess n", "ess n door", "ess n sv"]),
         new(EssCommand.Run, "run", ["r"], "", 0, 0,
             "Make the code once.",
