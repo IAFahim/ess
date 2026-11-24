@@ -56,6 +56,28 @@ ess w
 
 Open `DoorSm.plantuml` in any text editor and save it. The code is made again. If the folder is a git project (press `g` once), every good save is committed and pushed. A broken diagram is never saved.
 
+## Unity ECS
+
+`ess` always makes the machine a `partial struct`, never a class, so it is unmanaged data that Burst can run. It removes the two things C# 9 (Unity's language level) will not allow on a struct: the `= new Vars()` field initializer and the empty constructor.
+
+To use it as a component, add this line to the `[RenderConfig.CSharp]` block of the diagram (the starter has it commented out):
+
+```
+BaseList = "Unity.Entities.IComponentData"
+```
+
+Rules for using it:
+
+- Pass it by `ref`. A copy dispatches on the copy.
+- A default (zero) struct has `stateId == StateId.ROOT`. Call `Start()` once when you see that.
+- Actions in the diagram must be Burst safe: no `List`, no `string`, no managed objects. Put the data they need in `vars` (`AutoExpandedVars`).
+- Talk to it through `vars`: set the inputs, `DispatchEvent`, read the outputs.
+- `BaseList` may only name interfaces (a struct cannot have a base class). `NameSpace` must not end with `;`.
+
+`scripts/unity-check.sh` runs the proof: a Burst `IJobEntity` drives the machine inside an ECS world and is compared with plain managed code.
+
+If your diagram folder is inside a Unity project, the Unity project is already a git repo. `ess g` refuses it as "inside a bigger git project", and watch does not auto-save there. Use your project's own git for that folder.
+
 ## Two things in the diagram that surprise people
 
 - `On --> On : EVENT / x` leaves and re-enters the state, so its `enter` action runs again. To stay in the state, write the event with no arrow: `On : EVENT / x`.

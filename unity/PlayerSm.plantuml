@@ -1,0 +1,49 @@
+@startuml PlayerSm
+
+[*] --> Stopped
+
+state Stopped
+Stopped : enter / position = 0;
+Stopped --> Route : PLAY
+
+state Route <<choice>>
+Route --> Active : [trackLoaded]
+Route --> Stopped : else
+
+state Active {
+    [*] --> Playing
+    state Playing
+    state Paused
+
+    Playing : enter / playCount += 1;
+    Playing : TICK [position < 3] / position += 1;
+    Playing --> Stopped : TICK [position >= 3]
+    Playing --> Paused : PAUSE
+
+    Paused : enter / pauseCount += 1;
+    Paused --> Playing : PAUSE
+}
+Active : exit / leaveCount += 1;
+Active --> Stopped : STOP
+Active --> Interrupted : CALL
+
+Interrupted --> Active[H] : HANGUP
+Active[H] --> Playing
+
+/'! $CONFIG : toml
+[RenderConfig]
+AutoExpandedVars = """
+    public int position;
+    public int playCount;
+    public int pauseCount;
+    public int leaveCount;
+    public bool trackLoaded;
+    """
+[RenderConfig.CSharp]
+NameSpace = "Machines"
+UsePartialClass = true
+BaseList = "Unity.Entities.IComponentData"
+[SmRunnerSettings]
+transpilerId = "CSharp"
+'/
+@enduml

@@ -8,6 +8,7 @@ internal sealed class StarterDiagram
         ' ess starter. Edit this file, save it, and ess makes the code again.
         ' To handle an event and stay in the same state, write it with no arrow:
         '   On : TICK / count += 1;
+        ' ess makes the code a struct. For Unity ECS, remove the # before BaseList below.
 
         [*] --> Off
 
@@ -22,7 +23,7 @@ internal sealed class StarterDiagram
         AutoExpandedVars = "public int count;"
         [RenderConfig.CSharp]
         NameSpace = "Machines"
-        UsePartialClass = true
+        # BaseList = "Unity.Entities.IComponentData"
         [SmRunnerSettings]
         transpilerId = "CSharp"
         [SmRunnerSettings.smDesignDescriber]

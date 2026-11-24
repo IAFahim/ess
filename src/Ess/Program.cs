@@ -14,7 +14,7 @@ using var http = new HttpClient();
 http.DefaultRequestHeaders.UserAgent.ParseAdd("ess");
 
 var tool = new StateSmithTool(new EssHome(), new StateSmithAssets(), http, console);
-var generator = new CodeGenerator(tool, subprocess, new GenerationOutputJudge(), diagrams, console);
+var generator = new CodeGenerator(tool, subprocess, new GenerationOutputJudge(), diagrams, new StructConverter(), console);
 var gitSaver = new GitSaver(subprocess, console, new RepoNames());
 var keys = new EssKeys();
 
