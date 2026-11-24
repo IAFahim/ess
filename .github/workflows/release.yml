@@ -1,0 +1,54 @@
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - { runner: ubuntu-latest, rid: linux-x64, name: ess-linux-x64, pack: tar }
+          - { runner: ubuntu-24.04-arm, rid: linux-arm64, name: ess-linux-arm64, pack: tar }
+          - { runner: macos-latest, rid: osx-arm64, name: ess-osx-arm64, pack: tar }
+          - { runner: macos-15-intel, rid: osx-x64, name: ess-osx-x64, pack: tar }
+          - { runner: windows-latest, rid: win-x64, name: ess-win-x64, pack: zip }
+          - { runner: windows-11-arm, rid: win-arm64, name: ess-win-arm64, pack: zip }
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Test
+        run: dotnet test tests/Ess.Tests
+      - name: Publish
+        run: dotnet publish src/Ess -c Release -r ${{ matrix.rid }} -o out
+      - name: Pack tar
+        if: matrix.pack == 'tar'
+        run: tar -czf ${{ matrix.name }}.tar.gz -C out ess
+      - name: Pack zip
+        if: matrix.pack == 'zip'
+        shell: pwsh
+        run: Compress-Archive -Path out/ess.exe -DestinationPath ${{ matrix.name }}.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.name }}
+          path: ${{ matrix.name }}.*
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${{ github.ref_name }}" dist/* --repo "${{ github.repository }}" --generate-notes

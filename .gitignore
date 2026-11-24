@@ -1,0 +1,6 @@
+bin/
+obj/
+artifacts/
+*.swp
+.DS_Store
+Thumbs.db

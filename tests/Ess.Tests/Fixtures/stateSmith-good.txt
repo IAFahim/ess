@@ -1,0 +1,21 @@
+Creating settings directory: /home/user/.config/StateSmith.Cli
+StateSmith.Cli 0.22.2+0c32be37bf4d4fee5499780a5ef37a7996c192f9
+
+
+── Run ─────────────────────────────────────────────────────────────────────────
+No run info found at: 
+/tmp/StateSmith.Cli/runinfo.cf04f1114aade85fab066876998f2027.json
+No previous run info found for LightSm.plantuml. Code gen needed.
+Running diagram: `LightSm.plantuml`
+
+StateSmith version - 0.22.2+0c32be37bf4d4fee5499780a5ef37a7996c192f9
+StateSmith Runner - Compiling file: `LightSm.plantuml` (no state machine name specified).
+StateSmith Runner - State machine `LightSm` selected.
+StateSmith Runner - Writing to file `LightSm.md`
+StateSmith Runner - Writing to file `LightSm.cs`
+StateSmith Runner - Writing to file `LightSm.sim.html`
+StateSmith Runner - Finished normally.
+
+Run info stored in 
+/tmp/StateSmith.Cli/runinfo.cf04f1114aade85fab066876998f2027.json
+

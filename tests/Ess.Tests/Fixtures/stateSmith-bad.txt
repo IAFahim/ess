@@ -1,0 +1,17 @@
+Using settings directory: /home/user/.config/StateSmith.Cli
+StateSmith.Cli 0.22.2+0c32be37bf4d4fee5499780a5ef37a7996c192f9
+
+
+── Run ─────────────────────────────────────────────────────────────────────────
+No run info found at: 
+/tmp/StateSmith.Cli/runinfo.cc40ffdf0b04320b5088f27a9a3301f7.json
+No previous run info found for Bad.plantuml. Code gen needed.
+
+Failed while trying to read diagram for settings.
+
+Exception FormatException : PlantUML input failed parsing.
+Reason(s): no viable alternative at input ' #' at line 2 column 10. Offending symbol: `#`.
+
+Related error info/debug settings: 'dumpErrorsToFile', 'propagateExceptions'. See https://github.com/StateSmith/StateSmith/blob/main/docs/settings.md .
+StateSmith Runner - Finished with failure.
+
