@@ -31,6 +31,18 @@ try {
     }
 
     Write-Host "Installed ess to $installDir"
+
+    Write-Host ""
+    Write-Host "What ess needs:"
+    if (Get-Command git -ErrorAction SilentlyContinue) { Write-Host "  ok  git" } else { Write-Host "  !   git is missing. Get it from https://git-scm.com/downloads" }
+    if (Get-Command gh -ErrorAction SilentlyContinue) {
+        gh auth status *> $null
+        if ($LASTEXITCODE -eq 0) { Write-Host "  ok  gh, logged in" } else { Write-Host "  !   gh is not logged in. Run:  gh auth login" }
+    } else {
+        Write-Host "  !   gh is missing (only needed to put folders on GitHub). Get it from https://cli.github.com"
+    }
+    Write-Host ""
+    Write-Host "Start:  mkdir door; cd door; ess n"
 } finally {
     Remove-Item -Recurse -Force $workDir
 }

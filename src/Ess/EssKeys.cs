@@ -4,11 +4,39 @@ internal sealed class EssKeys
 {
     private const char QuitKey = 'q';
 
-    public char Read()
+    private readonly TimeSpan pollInterval = TimeSpan.FromMilliseconds(50);
+
+    public async Task<char> ReadAsync(CancellationToken cancel)
     {
         if (Console.IsInputRedirected)
         {
             return ReadFromPipe();
+        }
+
+        try
+        {
+            while (true)
+            {
+                var pressed = ReadIfPressed();
+                if (pressed is not null)
+                {
+                    return pressed.Value;
+                }
+
+                await Task.Delay(pollInterval, cancel);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            return QuitKey;
+        }
+    }
+
+    public char? ReadIfPressed()
+    {
+        if (Console.IsInputRedirected || !Console.KeyAvailable)
+        {
+            return null;
         }
 
         var pressed = Console.ReadKey(intercept: true);

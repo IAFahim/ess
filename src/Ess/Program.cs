@@ -16,15 +16,16 @@ http.DefaultRequestHeaders.UserAgent.ParseAdd("ess");
 var tool = new StateSmithTool(new EssHome(), new StateSmithAssets(), http, console);
 var generator = new CodeGenerator(tool, subprocess, new GenerationOutputJudge(), diagrams, console);
 var gitSaver = new GitSaver(subprocess, console, new RepoNames());
+var keys = new EssKeys();
 
 var app = new EssApp(
     resolver,
     catalog,
-    new EssKeys(),
+    keys,
     console,
     new NewCommand(generator, tool, new StarterDiagram(), new MachineNames(), console),
     new RunCommand(generator),
-    new WatchCommand(generator, diagrams, gitSaver, console),
+    new WatchCommand(generator, diagrams, gitSaver, keys, console),
     new GitCommand(gitSaver),
     new AppVersion().Current);
 

@@ -18,6 +18,8 @@ public class CommandResolverTests
     [InlineData("g", EssCommand.Git)]
     [InlineData("git", EssCommand.Git)]
     [InlineData("save", EssCommand.Git)]
+    [InlineData("s", EssCommand.Git)]
+    [InlineData("in", EssCommand.New)]
     public void ExactWordsRunTheCommand(string typed, EssCommand expected)
     {
         var resolution = resolver.Resolve(typed);

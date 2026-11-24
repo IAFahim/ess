@@ -30,8 +30,28 @@ mkdir -p "$install_dir"
 install -m 755 "$work_dir/ess" "$install_dir/ess"
 
 echo "Installed ess to $install_dir/ess"
+"$install_dir/ess" --version
+
+echo
+echo "What ess needs:"
+if command -v git >/dev/null 2>&1; then
+  echo "  ok  git"
+else
+  echo "  !   git is missing. Get it from https://git-scm.com/downloads"
+fi
+if command -v gh >/dev/null 2>&1; then
+  if gh auth status >/dev/null 2>&1; then
+    echo "  ok  gh, logged in"
+  else
+    echo "  !   gh is not logged in. Run:  gh auth login"
+  fi
+else
+  echo "  !   gh is missing (only needed to put folders on GitHub). Get it from https://cli.github.com"
+fi
+
+echo
 case ":$PATH:" in
   *":$install_dir:"*) ;;
-  *) echo "Add this folder to your PATH:  export PATH=\"$install_dir:\$PATH\"" ;;
+  *) echo "First add ess to your PATH:  export PATH=\"$install_dir:\$PATH\"" ;;
 esac
-"$install_dir/ess" --version
+echo "Start:  mkdir door && cd door && ess n"

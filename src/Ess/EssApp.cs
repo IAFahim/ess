@@ -47,7 +47,7 @@ internal sealed class EssApp(
         console.Warn($"I do not know \"{typed}\". Did you mean  {guess.Key}  ({guess.Name})?");
         console.Line("    Press y for yes, any other key to stop.");
 
-        if (keys.Read() != YesKey)
+        if (await keys.ReadAsync(cancel) != YesKey)
         {
             return 1;
         }
@@ -56,6 +56,36 @@ internal sealed class EssApp(
     }
 
     private async Task<int> ChooseFromMenu(string folder, CancellationToken cancel)
+    {
+        var lastExitCode = 0;
+
+        while (!cancel.IsCancellationRequested)
+        {
+            ShowMenu(folder);
+
+            var pressed = await keys.ReadAsync(cancel);
+            if (pressed == QuitKey)
+            {
+                return lastExitCode;
+            }
+
+            var resolution = resolver.Resolve(pressed.ToString());
+            if (resolution.Kind != ResolutionKind.RunCommand)
+            {
+                console.Bad($"\"{pressed}\" is not one of the keys.");
+                console.Line();
+                continue;
+            }
+
+            console.Line();
+            lastExitCode = await Execute(resolution.Command!.Command, [], folder, cancel);
+            console.Line();
+        }
+
+        return lastExitCode;
+    }
+
+    private void ShowMenu(string folder)
     {
         console.Line("ess  -  easy state smith");
         console.Line($"folder: {folder}");
@@ -68,22 +98,6 @@ internal sealed class EssApp(
 
         console.Line();
         console.Line($"Press one key  ({QuitKey} to quit):");
-
-        var pressed = keys.Read();
-        if (pressed == QuitKey)
-        {
-            return 0;
-        }
-
-        var resolution = resolver.Resolve(pressed.ToString());
-        if (resolution.Kind != ResolutionKind.RunCommand)
-        {
-            console.Bad($"\"{pressed}\" is not one of the keys.");
-            return 1;
-        }
-
-        console.Line();
-        return await Execute(resolution.Command!.Command, [], folder, cancel);
     }
 
     private Task<int> Execute(EssCommand command, string[] extraArguments, string folder, CancellationToken cancel)

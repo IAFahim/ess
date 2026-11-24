@@ -8,12 +8,42 @@ You do not need an IDE. You do not need to remember long commands.
 
 | Type | Means | Does |
 |---|---|---|
-| `ess n` | new | makes a starter diagram, gets StateSmith, makes the code |
+| `ess n` (or `in`) | new | makes a starter diagram, gets StateSmith, makes the code |
 | `ess r` | run | makes the code one time |
-| `ess w` | watch | makes the code every time you save |
-| `ess g` | git | saves to git and pushes to GitHub |
+| `ess w` | watch | makes the code every time you save. Press `g` to save to GitHub now, `q` to stop |
+| `ess g` (or `s`) | git, save | saves to git and pushes to GitHub |
 
-Type `ess` alone and press one key. If you mistype, `ess` asks what you meant.
+Type `ess` alone and press one key. The menu stays open until you press `q`. If you mistype (`ess wach`, `ess gti`), `ess` asks what you meant.
+
+## Install: one line
+
+Pick the line for your computer. It installs `ess`, checks that `git` and `gh` are ready, and tells you what to do next.
+
+Linux and macOS, while this repo is private (needs `gh` logged in):
+
+```
+gh api repos/IAFahim/ess/contents/install.sh -H 'Accept: application/vnd.github.raw' | sh
+```
+
+Windows PowerShell, while this repo is private (needs `gh` logged in):
+
+```
+gh api repos/IAFahim/ess/contents/install.ps1 -H 'Accept: application/vnd.github.raw' | iex
+```
+
+If the repo is public, no `gh` is needed to install:
+
+```
+curl -fsSL https://raw.githubusercontent.com/IAFahim/ess/main/install.sh | sh
+```
+
+```
+irm https://raw.githubusercontent.com/IAFahim/ess/main/install.ps1 | iex
+```
+
+These download a release. They work only after a release exists (`git tag v0.1.0 && git push origin v0.1.0` builds all six binaries). Until then, build it yourself with an SDK that bundles .NET runtime 10.0.14 or newer (older ones stop with NU1903): `dotnet publish src/Ess -c Release -r linux-x64 -o out`.
+
+`ess g` needs `git`. To put a folder on GitHub it also needs [`gh`](https://cli.github.com), logged in once with `gh auth login`.
 
 ## First time
 
@@ -24,25 +54,7 @@ ess n
 ess w
 ```
 
-Open `DoorSm.plantuml` in any text editor. Save it. The code is made again. If the folder is already a git project (`ess g` once), every good save is committed and pushed. A broken diagram is never saved.
-
-## Install
-
-Linux and macOS:
-
-```
-curl -fsSL https://raw.githubusercontent.com/IAFahim/ess/main/install.sh | sh
-```
-
-Windows (PowerShell):
-
-```
-irm https://raw.githubusercontent.com/IAFahim/ess/main/install.ps1 | iex
-```
-
-These only work after a release exists, and the repo is private until you decide otherwise (a private repo needs `gh auth login` first). Build it yourself meanwhile: `dotnet publish src/Ess -c Release -r linux-x64 -o out`.
-
-`ess g` needs `git`. To put the folder on GitHub it also needs [`gh`](https://cli.github.com), logged in once with `gh auth login`.
+Open `DoorSm.plantuml` in any text editor and save it. The code is made again. If the folder is a git project (press `g` once), every good save is committed and pushed. A broken diagram is never saved.
 
 ## Two things in the diagram that surprise people
 

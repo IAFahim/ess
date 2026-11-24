@@ -18,11 +18,11 @@ It builds one Native AOT binary, `ess` (about 7 MB, no .NET needed to run it).
 
 | Type | Name | Does |
 |---|---|---|
-| `ess` | menu | one key menu |
-| `ess n [Name]` | new | starter diagram, get StateSmith, make the code |
+| `ess` | menu | one key menu; stays open until q |
+| `ess n [Name]` (`in`) | new | starter diagram, get StateSmith, make the code |
 | `ess r` | run | make the code once |
-| `ess w` | watch | make the code on every save; if the folder is a git repo, commit and push every good build |
-| `ess g` | git | git init if needed, commit, create a private GitHub repo if none, push |
+| `ess w` | watch | make the code on every save; commit and push every good build if the folder is a git repo; key `g` saves now, `q` stops |
+| `ess g` (`s`) | git | git init if needed, commit, create a private GitHub repo if none, push |
 
 Typos are forgiven: capitals, a unique prefix (`wa`), long names (`watch`), and swapped letters (`wach`, `gti`) which ask "did you mean". Anything else shows the menu.
 
@@ -53,6 +53,9 @@ The rest (`StateSmithTool`, `CodeGenerator`, `GitSaver`, `Subprocess`, the comma
 dotnet test tests/Ess.Tests
 dotnet publish src/Ess -c Release -r <rid> -o out
 scripts/smoke.sh out/ess
+python3 scripts/pty_smoke.py out/ess
 ```
+
+`pty_smoke.py` drives the menu and the watch keys in a real terminal (Linux and macOS only).
 
 Verified on Linux x64 only. macOS, Windows and ARM are unverified: see the open issues.
