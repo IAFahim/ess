@@ -16,7 +16,8 @@ http.DefaultRequestHeaders.UserAgent.ParseAdd("ess");
 
 var tool = new StateSmithTool(new EssHome(), new StateSmithAssets(), http, console);
 var generator = new CodeGenerator(tool, subprocess, new GenerationOutputJudge(), diagrams, new StructConverter(), console);
-var svCommand = new SvCommand(new SvRepo(subprocess, console, "https://github.com/IAFahim/sv.git"), new DemoFiles(), generator, subprocess, new MachineNames(), console);
+var dotnet = new DotnetLocator(subprocess, new SdkList());
+var svCommand = new SvCommand(new SvRepo(subprocess, console, "https://github.com/IAFahim/sv.git"), new DemoFiles(), generator, subprocess, dotnet, new MachineNames(), console);
 var gitSaver = new GitSaver(subprocess, console, new RepoNames());
 var demos = new DemoCatalog();
 
@@ -30,7 +31,7 @@ var app = new EssApp(
     new RunCommand(generator),
     new WatchCommand(generator, diagrams, gitSaver, keys, console),
     new GitCommand(gitSaver),
-    new DemoCommand(demos, new DemoSelector(demos), new DemoFiles(), generator, subprocess, svCommand, keys, console),
+    new DemoCommand(demos, new DemoSelector(demos), new DemoFiles(), generator, subprocess, dotnet, svCommand, keys, console),
     new UpdateCommand(svCommand, console),
     new AppVersion().Current,
     interactive: !Console.IsInputRedirected);

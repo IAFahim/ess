@@ -15,7 +15,7 @@ internal sealed class Subprocess
 {
     public const int ProgramMissingExitCode = 127;
 
-    public async Task<ProcessResult> Run(string program, IReadOnlyList<string> arguments, string workingDirectory, CancellationToken cancel)
+    public async Task<ProcessResult> Run(string program, IReadOnlyList<string> arguments, string workingDirectory, CancellationToken cancel, IReadOnlyDictionary<string, string>? extraEnvironment = null)
     {
         var startInfo = new ProcessStartInfo(program)
         {
@@ -34,6 +34,11 @@ internal sealed class Subprocess
         startInfo.Environment["GIT_TERMINAL_PROMPT"] = "0";
         startInfo.Environment["GH_PROMPT_DISABLED"] = "1";
         startInfo.Environment["DOTNET_NOLOGO"] = "1";
+
+        foreach (var (name, value) in extraEnvironment ?? new Dictionary<string, string>())
+        {
+            startInfo.Environment[name] = value;
+        }
 
         var collected = new StringBuilder();
         var gate = new object();

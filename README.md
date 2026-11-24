@@ -32,7 +32,7 @@ ess d 1
 ess d sv
 ```
 
-Each demo makes its own folder right there, makes the code, and (for 1, 2 and 4) runs it so you see the result at once. It never overwrites a folder that is already there, except `ess d sv`, which resets its own `demo-sv` on purpose.
+Each demo makes its own folder right there, makes the code, and (for 1, 2 and 4) runs it so you see the result at once. If your `dotnet` on the PATH has no SDK, `ess` looks for a .NET 10 SDK itself (`DOTNET_ROOT`, `~/.dotnet`, the usual system folders, mise) and uses that. It never overwrites a folder that is already there, except `ess d sv`, which resets its own `demo-sv` on purpose.
 
 | Demo | Folder | Shows |
 |---|---|---|

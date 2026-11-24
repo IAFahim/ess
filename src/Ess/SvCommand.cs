@@ -5,6 +5,7 @@ internal sealed class SvCommand(
     DemoFiles files,
     CodeGenerator generator,
     Subprocess subprocess,
+    DotnetLocator dotnet,
     MachineNames machineNames,
     EssConsole console)
 {
@@ -163,14 +164,16 @@ internal sealed class SvCommand(
         console.Line();
         console.Step("Running it (the first build takes a minute):  dotnet run -c Release");
 
-        var result = await subprocess.Run("dotnet", runArguments, projectFolder, cancel);
-        console.Line();
-
-        if (result.ProgramMissing)
+        var install = await dotnet.Find(cancel);
+        if (install is null)
         {
-            console.Warn("dotnet is not installed. Get the .NET 10 SDK from https://dotnet.microsoft.com/download");
+            console.Line();
+            console.Warn("I could not find a .NET 10 SDK, so I could not run it. Get it from https://dotnet.microsoft.com/download");
             return;
         }
+
+        var result = await subprocess.Run(install.Executable, runArguments, projectFolder, cancel, install.Environment);
+        console.Line();
 
         console.Line(result.Output.Trim());
         console.Line();

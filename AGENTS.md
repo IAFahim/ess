@@ -42,6 +42,7 @@ The grammar copies ConsoleAppFramework's rules, written by hand: a verb with ali
 | `EditDistance` | how far apart two words are | two `string` -> `int` | swap counts as 1 |
 | `DemoSelector`, `DemoCatalog` | number or name to a demo; which demos exist | `string` -> `DemoInfo?` | `DemoTests`; the demo files are embedded from `src/Ess/Demos` and `unity/` (one source for the ECS demo and its Unity probe) |
 | `SvRepo` | add sv as a submodule, recognise it, update it | folder + source URL -> bool, printed result | `SvRepoTests` against a local bare repo (submodule, nesting refusal, already latest, detached follow, refuse dirty, reset) |
+| `DotnetLocator`, `SdkList` | find a .NET 10 SDK that works, even when plain `dotnet` on PATH finds none | `dotnet --list-sdks` text -> `DotnetInstall` (executable + `DOTNET_ROOT`) | `SdkListTests`; tried by hand from a clean `env -i bash -lc` shell on the machine where `/usr/bin/dotnet` had no SDK |
 | `StructConverter` | StateSmith's class into a C# 9 safe partial struct | generated `.cs` text -> `StructConversion` | compiled with Roslyn at C# 9, `IsUnmanagedType`, same trace as the class; real fixtures in `Fixtures/generated` |
 | `GenerationOutputJudge` | did StateSmith work, which files, what went wrong | `ProcessResult` -> bool, files, text | real recorded outputs in `tests/Ess.Tests/Fixtures` |
 | `StateSmithAssets` | which download for which computer | `HostPlatform` -> asset + SHA-256 | `StateSmithAssetsTests` |

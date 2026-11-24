@@ -6,6 +6,7 @@ internal sealed class DemoCommand(
     DemoFiles files,
     CodeGenerator generator,
     Subprocess subprocess,
+    DotnetLocator dotnet,
     SvCommand sv,
     EssKeys keys,
     EssConsole console)
@@ -98,14 +99,16 @@ internal sealed class DemoCommand(
         console.Line();
         console.Step($"Running it:  cd {demoFolder} && dotnet run   (first time takes a few seconds)");
 
-        var result = await subprocess.Run("dotnet", dotnetRunArguments, demoFolder, cancel);
-        console.Line();
-
-        if (result.ProgramMissing)
+        var install = await dotnet.Find(cancel);
+        if (install is null)
         {
-            console.Warn("dotnet is not installed, so I could not run it. Get the .NET SDK from https://dotnet.microsoft.com/download");
+            console.Line();
+            console.Warn("I could not find a .NET 10 SDK, so I could not run it. Get it from https://dotnet.microsoft.com/download");
             return;
         }
+
+        var result = await subprocess.Run(install.Executable, dotnetRunArguments, demoFolder, cancel, install.Environment);
+        console.Line();
 
         console.Line(result.Output.Trim());
 
