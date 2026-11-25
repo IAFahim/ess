@@ -5,19 +5,15 @@ internal sealed class DesktopEntry
     private const string ExecKey = "Exec=";
     private const string MimeTypeKey = "MimeType=";
 
-    public string PointedAt(string entry, string programPath, IReadOnlyList<string> types)
+    public string PointedAt(string entry, string programPath, IReadOnlyDictionary<string, string> environment, IReadOnlyList<string> types)
     {
-        var quoted = programPath.Contains(' ') ? $"\"{programPath}\"" : programPath;
         var lines = entry.ReplaceLineEndings("\n").TrimEnd('\n').Split('\n').ToList();
 
         for (var index = 0; index < lines.Count; index++)
         {
             if (lines[index].StartsWith(ExecKey, StringComparison.Ordinal))
             {
-                var command = lines[index][ExecKey.Length..];
-                var firstSpace = command.IndexOf(' ');
-                var arguments = firstSpace < 0 ? "" : command[firstSpace..];
-                lines[index] = ExecKey + quoted + arguments;
+                lines[index] = ExecKey + Command(programPath, environment, lines[index][ExecKey.Length..]);
             }
             else if (lines[index].StartsWith(MimeTypeKey, StringComparison.Ordinal))
             {
@@ -32,5 +28,21 @@ internal sealed class DesktopEntry
         }
 
         return string.Join('\n', lines) + "\n";
+    }
+
+    private static string Command(string programPath, IReadOnlyDictionary<string, string> environment, string oldCommand)
+    {
+        var words = new List<string>();
+
+        if (environment.Count > 0)
+        {
+            words.Add("env");
+            words.AddRange(environment.OrderBy(pair => pair.Key, StringComparer.Ordinal).Select(pair => $"{pair.Key}={pair.Value}"));
+        }
+
+        words.Add(programPath.Contains(' ') ? $"\"{programPath}\"" : programPath);
+        words.AddRange(oldCommand.Split(' ', StringSplitOptions.RemoveEmptyEntries).Where(word => word.StartsWith('%')));
+
+        return string.Join(' ', words);
     }
 }

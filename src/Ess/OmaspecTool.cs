@@ -10,6 +10,7 @@ internal sealed class OmaspecTool(
     UserFolders folders,
     OmaspecRelease release,
     DesktopEntry desktopEntry,
+    ScreenCards screenCards,
     HttpClient http,
     Subprocess subprocess,
     EssConsole console)
@@ -27,7 +28,17 @@ internal sealed class OmaspecTool(
 
     private readonly string[] diagramTypes = ["text/vnd.plantuml", "text/x-plantuml", "text/vnd.mermaid"];
 
+    private const string PowerPreferenceVariable = "WGPU_POWER_PREF";
+    private const string StrongCard = "high";
+
     private string ProgramPath => Path.Combine(folders.Bin, ProgramName);
+
+    public IReadOnlyDictionary<string, string> LaunchEnvironment()
+    {
+        return screenCards.PreferStrongCard()
+            ? new Dictionary<string, string> { [PowerPreferenceVariable] = StrongCard }
+            : new Dictionary<string, string>();
+    }
 
     private string DesktopPath => Path.Combine(folders.Applications, DesktopFileName);
 
@@ -96,7 +107,7 @@ internal sealed class OmaspecTool(
         }
 
         var entryText = await File.ReadAllTextAsync(DesktopPath, cancel);
-        var pointedEntry = desktopEntry.PointedAt(entryText, ProgramPath, diagramTypes);
+        var pointedEntry = desktopEntry.PointedAt(entryText, ProgramPath, LaunchEnvironment(), diagramTypes);
         if (pointedEntry != entryText)
         {
             await File.WriteAllTextAsync(DesktopPath, pointedEntry, cancel);
@@ -203,7 +214,7 @@ internal sealed class OmaspecTool(
 
             Directory.CreateDirectory(folders.Applications);
             var entryText = await File.ReadAllTextAsync(entry, cancel);
-            await File.WriteAllTextAsync(DesktopPath, desktopEntry.PointedAt(entryText, ProgramPath, diagramTypes), cancel);
+            await File.WriteAllTextAsync(DesktopPath, desktopEntry.PointedAt(entryText, ProgramPath, LaunchEnvironment(), diagramTypes), cancel);
 
             Directory.CreateDirectory(folders.MimePackages);
             File.Copy(mime, MimePath, overwrite: true);

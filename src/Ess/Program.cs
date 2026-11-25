@@ -17,7 +17,7 @@ http.DefaultRequestHeaders.UserAgent.ParseAdd("ess");
 var home = new EssHome();
 var userFolders = new UserFolders();
 var tool = new StateSmithTool(home, new StateSmithAssets(), http, console);
-var omaspec = new OmaspecTool(home, userFolders, new OmaspecRelease(), new DesktopEntry(), http, subprocess, console);
+var omaspec = new OmaspecTool(home, userFolders, new OmaspecRelease(), new DesktopEntry(), new ScreenCards(), http, subprocess, console);
 var generator = new CodeGenerator(tool, subprocess, new GenerationOutputJudge(), diagrams, new StructConverter(), console);
 var dotnet = new DotnetLocator(subprocess, new SdkList());
 var svCommand = new SvCommand(new SvRepo(subprocess, console, "https://github.com/IAFahim/sv.git"), new DemoFiles(), generator, subprocess, dotnet, new MachineNames(), console);

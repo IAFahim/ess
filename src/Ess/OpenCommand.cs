@@ -53,7 +53,7 @@ internal sealed class OpenCommand(
             return 0;
         }
 
-        var started = await subprocess.Run("sh", ["-c", StartDetached, program, .. targets], folder, cancel);
+        var started = await subprocess.Run("sh", ["-c", StartDetached, program, .. targets], folder, cancel, omaspec.LaunchEnvironment());
         if (!started.Succeeded)
         {
             console.Bad($"Could not start omaspec: {started.Output.Trim()}");

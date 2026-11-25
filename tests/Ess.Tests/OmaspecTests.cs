@@ -72,12 +72,16 @@ public class OmaspecTests
         Assert.Equal(expected, release.IsUpToDate(installed, newest));
     }
 
+    private static readonly Dictionary<string, string> NoEnvironment = [];
+
+    private static readonly Dictionary<string, string> StrongCard = new() { ["WGPU_POWER_PREF"] = "high" };
+
     [Fact]
     public void TheDesktopEntryRunsTheInstalledProgramAndListsEveryDiagramType()
     {
         const string entry = "[Desktop Entry]\nName=Omaspec\nExec=omaspec %F\nMimeType=text/x-plantuml;text/vnd.mermaid;\n";
 
-        var written = new DesktopEntry().PointedAt(entry, "/home/me/.local/bin/omaspec", ["text/vnd.plantuml", "text/x-plantuml"]);
+        var written = new DesktopEntry().PointedAt(entry, "/home/me/.local/bin/omaspec", NoEnvironment, ["text/vnd.plantuml", "text/x-plantuml"]);
 
         Assert.Equal(
             "[Desktop Entry]\nName=Omaspec\nExec=/home/me/.local/bin/omaspec %F\nMimeType=text/x-plantuml;text/vnd.mermaid;text/vnd.plantuml;\n",
@@ -85,20 +89,39 @@ public class OmaspecTests
     }
 
     [Fact]
-    public void PointingAnEntryTwiceChangesNothing()
+    public void TheDesktopEntryCanAskForTheStrongCard()
+    {
+        var written = new DesktopEntry().PointedAt("Exec=omaspec %F\n", "/bin/omaspec", StrongCard, []);
+
+        Assert.Equal("Exec=env WGPU_POWER_PREF=high /bin/omaspec %F\n", written);
+    }
+
+    [Fact]
+    public void PointingAnEntryAgainChangesNothingAndCanDropTheStrongCard()
     {
         var desktopEntry = new DesktopEntry();
-        var once = desktopEntry.PointedAt("Exec=omaspec %F\n", "/bin/omaspec", ["text/vnd.plantuml"]);
+        var strong = desktopEntry.PointedAt("Exec=omaspec %F\n", "/bin/omaspec", StrongCard, ["text/vnd.plantuml"]);
 
-        Assert.Equal(once, desktopEntry.PointedAt(once, "/bin/omaspec", ["text/vnd.plantuml"]));
-        Assert.Equal("Exec=/bin/omaspec %F\nMimeType=text/vnd.plantuml;\n", once);
+        Assert.Equal(strong, desktopEntry.PointedAt(strong, "/bin/omaspec", StrongCard, ["text/vnd.plantuml"]));
+        Assert.Equal("Exec=/bin/omaspec %F\nMimeType=text/vnd.plantuml;\n", desktopEntry.PointedAt(strong, "/bin/omaspec", NoEnvironment, ["text/vnd.plantuml"]));
     }
 
     [Fact]
     public void AProgramPathWithASpaceIsQuoted()
     {
-        var written = new DesktopEntry().PointedAt("Exec=omaspec %F", "/home/my name/.local/bin/omaspec", []);
+        var written = new DesktopEntry().PointedAt("Exec=omaspec %F", "/home/my name/.local/bin/omaspec", NoEnvironment, []);
 
-        Assert.StartsWith("Exec=\"/home/my name/.local/bin/omaspec\" %F\n", written);
+        Assert.Equal("Exec=\"/home/my name/.local/bin/omaspec\" %F\n", written);
+    }
+
+    [Theory]
+    [InlineData(new[] { "card0", "card0-DP-3", "card0-HDMI-A-1", "card1", "card1-DP-1", "renderD128", "version" }, new[] { "card0-DP-3", "card0-HDMI-A-1" }, true)]
+    [InlineData(new[] { "card0", "card0-eDP-1", "card1", "card1-HDMI-A-1" }, new[] { "card0-eDP-1" }, false)]
+    [InlineData(new[] { "card0", "card0-eDP-1", "card1", "card1-HDMI-A-1" }, new[] { "card0-eDP-1", "card1-HDMI-A-1" }, false)]
+    [InlineData(new[] { "card0", "card0-HDMI-A-1" }, new[] { "card0-HDMI-A-1" }, false)]
+    [InlineData(new[] { "card0", "card1" }, new string[0], false)]
+    public void OnlyADesktopWithTwoCardsAsksForTheStrongOne(string[] drmNames, string[] connected, bool expected)
+    {
+        Assert.Equal(expected, new ScreenCards().PreferStrongCard(drmNames, connected));
     }
 }
