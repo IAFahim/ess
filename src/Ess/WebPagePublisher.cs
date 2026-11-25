@@ -49,7 +49,7 @@ internal sealed class WebPagePublisher(Subprocess subprocess, EssConsole console
             outcome = PublishOutcome.Published;
         }
 
-        await TurnOnGitHubPages(folder, outcome, cancel);
+        await TurnOnGitHubPages(folder, outcome, firstTime: !hasParent, cancel);
         return outcome;
     }
 
@@ -135,7 +135,7 @@ internal sealed class WebPagePublisher(Subprocess subprocess, EssConsole console
         return true;
     }
 
-    private async Task TurnOnGitHubPages(string folder, PublishOutcome outcome, CancellationToken cancel)
+    private async Task TurnOnGitHubPages(string folder, PublishOutcome outcome, bool firstTime, CancellationToken cancel)
     {
         var origin = await Git(folder, cancel, "remote", "get-url", "origin");
         if (!origin.Output.Contains("github.com", StringComparison.OrdinalIgnoreCase))
@@ -154,6 +154,7 @@ internal sealed class WebPagePublisher(Subprocess subprocess, EssConsole console
         {
             var updating = outcome == PublishOutcome.Published ? " (it updates in a minute)" : "";
             console.Good($"Web page: {page.Output.Trim()}{updating}");
+            ExplainWhoCanSee(firstTime);
             return;
         }
 
@@ -166,7 +167,15 @@ internal sealed class WebPagePublisher(Subprocess subprocess, EssConsole console
         }
 
         console.Good($"Made a web page. It is ready in a minute or two: {turnedOn.Output.Trim()}");
-        console.Line("    Anyone with the link can open it. It has only the simulators, not your code.");
+        ExplainWhoCanSee(firstTime: true);
+    }
+
+    private void ExplainWhoCanSee(bool firstTime)
+    {
+        if (firstTime)
+        {
+            console.Line("    Anyone with the link can open it. It has only the simulators, not your code.");
+        }
     }
 
     private Task<ProcessResult> Git(string folder, CancellationToken cancel, params string[] arguments) =>
