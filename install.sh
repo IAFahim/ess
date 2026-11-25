@@ -49,6 +49,11 @@ else
   echo "  !   gh is missing (only needed to put folders on GitHub). Get it from https://cli.github.com"
 fi
 
+if [ "$(uname -s)" = Linux ]; then
+  echo
+  (cd "$work_dir" && "$install_dir/ess" o) || echo "  !   omaspec is not set up. Try again later:  ess o"
+fi
+
 echo
 case ":$PATH:" in
   *":$install_dir:"*) ;;

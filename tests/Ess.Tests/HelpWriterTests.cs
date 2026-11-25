@@ -50,6 +50,7 @@ public class HelpWriterTests
 
         Assert.Contains("n   new", menu);
         Assert.Contains("d   demo", menu);
+        Assert.Contains("o   open", menu);
         Assert.DoesNotContain("update", menu);
     }
 }

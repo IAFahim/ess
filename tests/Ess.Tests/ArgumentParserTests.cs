@@ -22,6 +22,9 @@ public class ArgumentParserTests
     [InlineData("demo", EssCommand.Demo)]
     [InlineData("d", EssCommand.Demo)]
     [InlineData("update", EssCommand.Update)]
+    [InlineData("open", EssCommand.Open)]
+    [InlineData("o", EssCommand.Open)]
+    [InlineData("omaspec", EssCommand.Open)]
     public void CommandsAndTheirShortFormsRun(string word, EssCommand expected)
     {
         var args = expected == EssCommand.Update ? new[] { word, "sv" } : new[] { word };
@@ -84,6 +87,8 @@ public class ArgumentParserTests
     [InlineData("neww", EssCommand.New)]
     [InlineData("dmeo", EssCommand.Demo)]
     [InlineData("updte", EssCommand.Update)]
+    [InlineData("omaspce", EssCommand.Open)]
+    [InlineData("opne", EssCommand.Open)]
     public void SmallTyposAreErrorsWithASuggestion(string word, EssCommand expected)
     {
         var invocation = parser.Parse([word]);

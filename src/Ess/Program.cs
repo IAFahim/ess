@@ -14,7 +14,10 @@ var keys = new EssKeys();
 using var http = new HttpClient();
 http.DefaultRequestHeaders.UserAgent.ParseAdd("ess");
 
-var tool = new StateSmithTool(new EssHome(), new StateSmithAssets(), http, console);
+var home = new EssHome();
+var userFolders = new UserFolders();
+var tool = new StateSmithTool(home, new StateSmithAssets(), http, console);
+var omaspec = new OmaspecTool(home, userFolders, new OmaspecRelease(), new DesktopEntry(), http, subprocess, console);
 var generator = new CodeGenerator(tool, subprocess, new GenerationOutputJudge(), diagrams, new StructConverter(), console);
 var dotnet = new DotnetLocator(subprocess, new SdkList());
 var svCommand = new SvCommand(new SvRepo(subprocess, console, "https://github.com/IAFahim/sv.git"), new DemoFiles(), generator, subprocess, dotnet, new MachineNames(), console);
@@ -33,6 +36,7 @@ var app = new EssApp(
     new GitCommand(gitSaver),
     new DemoCommand(demos, new DemoSelector(demos), new DemoFiles(), generator, subprocess, dotnet, svCommand, keys, console),
     new UpdateCommand(svCommand, console),
+    new OpenCommand(omaspec, diagrams, new DiagramLookup(diagrams, new EditDistance()), userFolders, subprocess, console),
     new AppVersion().Current,
     interactive: !Console.IsInputRedirected);
 

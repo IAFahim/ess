@@ -16,6 +16,7 @@ You do not need an IDE. You do not need to remember long commands.
 | `ess git` | `g`, `s` | saves to git and pushes to GitHub |
 | `ess demo [which]` | `d` | lists the demos. `ess d 1` or `ess d light` makes one |
 | `ess update <what>` | `u` | gets the latest of something: `ess u sv` |
+| `ess open [file]` | `o` | Linux: gets or updates [omaspec](https://github.com/enhapu-afk/omaspec), makes it the app that opens `.plantuml` files, then opens the diagrams here |
 
 `ess` alone in a terminal shows a one-key menu. If you mistype a command, `ess` tells you what you probably meant. `ess --version` shows the version.
 
@@ -92,6 +93,8 @@ These download a release. They work only after a release exists (`git tag v0.1.0
 
 `ess g` needs `git`. To put a folder on GitHub it also needs [`gh`](https://cli.github.com), logged in once with `gh auth login`.
 
+On Linux the installer also runs `ess o` once, so double-clicking a `.plantuml` or `.puml` file opens [omaspec](https://github.com/enhapu-afk/omaspec), which draws the diagram next to its text. Run `ess o` again any time to update omaspec. On Windows and macOS, open the `.sim.html` file next to a diagram in a browser instead.
+
 ## First time
 
 ```
@@ -101,7 +104,7 @@ ess n
 ess w
 ```
 
-Open `DoorSm.plantuml` in any text editor and save it. The code is made again. If the folder is a git project (press `g` once), every good save is committed and pushed. A broken diagram is never saved.
+Open `DoorSm.plantuml` in any text editor and save it (on Linux, `ess o` opens it in omaspec, which shows the drawing as you type). The code is made again. If the folder is a git project (press `g` once), every good save is committed and pushed. A broken diagram is never saved.
 
 ## Unity ECS
 

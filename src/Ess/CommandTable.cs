@@ -8,6 +8,7 @@ public enum EssCommand
     Git,
     Demo,
     Update,
+    Open,
 }
 
 internal sealed record CommandSpec(
@@ -56,9 +57,12 @@ internal sealed class CommandTable
         new(EssCommand.Update, "update", ["u"], "<what>", 1, 1,
             "Get the latest of something. For now only sv.",
             ["ess u sv"]),
+        new(EssCommand.Open, "open", ["o", "omaspec"], "[file]", 0, 1,
+            "Open the diagrams here in omaspec, the diagram viewer. First it gets omaspec or updates it to the newest, and makes it the app that opens .plantuml and .puml files. Linux only.",
+            ["ess o", "ess o Hero.plantuml"]),
     ];
 
-    public IReadOnlyList<string> GlobalExamples { get; } = ["ess d", "ess n sv", "ess u sv", "ess w"];
+    public IReadOnlyList<string> GlobalExamples { get; } = ["ess d", "ess n sv", "ess u sv", "ess w", "ess o"];
 
     public CommandSpec? Find(string word)
     {

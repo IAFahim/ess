@@ -12,6 +12,7 @@ internal sealed class EssApp(
     GitCommand gitCommand,
     DemoCommand demoCommand,
     UpdateCommand updateCommand,
+    OpenCommand openCommand,
     string version,
     bool interactive)
 {
@@ -137,6 +138,7 @@ internal sealed class EssApp(
             EssCommand.Git => gitCommand.Run(folder, cancel),
             EssCommand.Demo => demoCommand.Run(arguments, folder, chooseAfterList, cancel),
             EssCommand.Update => updateCommand.Run(arguments, folder, cancel),
+            EssCommand.Open => openCommand.Run(arguments, folder, cancel),
             _ => throw new ArgumentOutOfRangeException(nameof(command), command, "Unknown ess command"),
         };
     }
