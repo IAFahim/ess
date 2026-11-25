@@ -15,7 +15,7 @@ internal sealed class Subprocess
 {
     public const int ProgramMissingExitCode = 127;
 
-    public async Task<ProcessResult> Run(string program, IReadOnlyList<string> arguments, string workingDirectory, CancellationToken cancel, IReadOnlyDictionary<string, string>? extraEnvironment = null)
+    public async Task<ProcessResult> Run(string program, IReadOnlyList<string> arguments, string workingDirectory, CancellationToken cancel, IReadOnlyDictionary<string, string>? extraEnvironment = null, string? standardInput = null)
     {
         var startInfo = new ProcessStartInfo(program)
         {
@@ -23,6 +23,7 @@ internal sealed class Subprocess
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             RedirectStandardInput = true,
+            StandardInputEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false),
             UseShellExecute = false,
         };
 
@@ -69,12 +70,12 @@ internal sealed class Subprocess
             return new ProcessResult(ProgramMissingExitCode, $"{program} was not found");
         }
 
-        process.StandardInput.Close();
         process.BeginOutputReadLine();
         process.BeginErrorReadLine();
 
         try
         {
+            await Feed(process, standardInput, cancel);
             await process.WaitForExitAsync(cancel);
         }
         catch (OperationCanceledException)
@@ -86,6 +87,22 @@ internal sealed class Subprocess
         lock (gate)
         {
             return new ProcessResult(process.ExitCode, collected.ToString());
+        }
+    }
+
+    private static async Task Feed(Process process, string? standardInput, CancellationToken cancel)
+    {
+        try
+        {
+            if (standardInput is not null)
+            {
+                await process.StandardInput.WriteAsync(standardInput.AsMemory(), cancel);
+            }
+
+            process.StandardInput.Close();
+        }
+        catch (IOException)
+        {
         }
     }
 }

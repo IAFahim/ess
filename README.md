@@ -14,7 +14,7 @@ You do not need an IDE. You do not need to remember long commands.
 | `ess unity [what]` | `p` | makes this folder a Unity package with a starter machine. In Unity: Package Manager, +, Install package from disk, pick its `package.json`. The diagrams stay here, outside Unity. The machine is plain C#, so `ess r` runs it in .NET too |
 | `ess run` | `r` | makes the code once. In a folder made by `ess unity`, it also runs the machine in .NET |
 | `ess watch` | `w` | makes the code every time you save. While watching: `g` saves to GitHub now, `q` stops |
-| `ess git` | `g`, `s` | saves to git and pushes to GitHub |
+| `ess git` | `g`, `s` | saves to git, pushes to GitHub, and puts the simulators on a web page |
 | `ess demo [which]` | `d` | lists the demos. `ess d 1` or `ess d light` makes one |
 | `ess update <what>` | `u` | gets the latest of something: `ess u sv` |
 | `ess open [file]` | `o` | Linux: gets or updates [omaspec](https://github.com/enhapu-afk/omaspec), makes it the app that opens `.plantuml` files, then opens the diagrams here |
@@ -131,6 +131,22 @@ irm https://raw.githubusercontent.com/IAFahim/ess/main/install.ps1 | iex
 These download a release. They work only after a release exists (`git tag v0.1.0 && git push origin v0.1.0` builds all six binaries). Until then, build it yourself with an SDK that bundles .NET runtime 10.0.14 or newer (older ones stop with NU1903): `dotnet publish src/Ess -c Release -r linux-x64 -o out`.
 
 `ess g` needs `git`. To put a folder on GitHub it also needs [`gh`](https://cli.github.com), logged in once with `gh auth login`.
+
+## Web page
+
+Every `ess g` (and every save while `ess w` runs) also puts the simulators on a web page with GitHub Pages. You do nothing. `ess g` prints the link:
+
+```
+ok  Web page: https://you.github.io/door-game/
+```
+
+The page lists every machine. Click one, then click its events. It updates a minute after each save.
+
+- Only the `.sim.html` files and a list page go up. Your diagrams and code stay private.
+- Anyone with the link can open the page, even when the repo is private.
+- It lives on the `gh-pages` branch. No GitHub Actions file is added to your repo.
+- Pages on a private repo needs a paid GitHub plan, like Pro. Without one, `ess g` says so and still saves your work.
+- To stop it: repo Settings > Pages > Unpublish, then delete the `gh-pages` branch.
 
 On Linux the installer also runs `ess o` once, so double-clicking a `.plantuml` or `.puml` file opens [omaspec](https://github.com/enhapu-afk/omaspec), which draws the diagram next to its text. Run `ess o` again any time to update omaspec. On Windows and macOS, open the `.sim.html` file next to a diagram in a browser instead.
 

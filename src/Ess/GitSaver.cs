@@ -8,7 +8,7 @@ internal enum SaveOutcome
     NeedsHelp,
 }
 
-internal sealed class GitSaver(Subprocess subprocess, EssConsole console, RepoNames repoNames)
+internal sealed class GitSaver(Subprocess subprocess, EssConsole console, RepoNames repoNames, WebPagePublisher webPages)
 {
     private const string IgnoreFileName = ".gitignore";
     private const string BackupFiles = "*~";
@@ -95,14 +95,10 @@ internal sealed class GitSaver(Subprocess subprocess, EssConsole console, RepoNa
         }
 
         var alreadyUpToDate = push.Output.Contains("Everything up-to-date", StringComparison.Ordinal);
-        if (alreadyUpToDate && !hasNewWork)
-        {
-            console.Good("Nothing new. GitHub is already up to date.");
-            return SaveOutcome.NothingNew;
-        }
-
-        console.Good("Pushed to GitHub.");
-        return SaveOutcome.Pushed;
+        var outcome = alreadyUpToDate && !hasNewWork ? SaveOutcome.NothingNew : SaveOutcome.Pushed;
+        console.Good(outcome == SaveOutcome.NothingNew ? "Nothing new. GitHub is already up to date." : "Pushed to GitHub.");
+        await webPages.Publish(folder, cancel);
+        return outcome;
     }
 
     private async Task<SaveOutcome> CreateGitHubRepo(string folder, bool hasNewWork, bool createWhenMissing, CancellationToken cancel)
@@ -139,6 +135,7 @@ internal sealed class GitSaver(Subprocess subprocess, EssConsole console, RepoNa
         }
 
         console.Good($"Made a private GitHub repo called {repoName} and pushed to it.");
+        await webPages.Publish(folder, cancel);
         return SaveOutcome.Pushed;
     }
 

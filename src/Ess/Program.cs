@@ -24,7 +24,7 @@ var dotnet = new DotnetLocator(subprocess, new SdkList());
 var dotnetFolder = new DotnetFolder(new MachineNames());
 var dotnetRunner = new DotnetRunner(subprocess, dotnet, console);
 var svCommand = new SvCommand(new SvRepo(subprocess, console, "https://github.com/IAFahim/sv.git"), new DemoFiles(), generator, subprocess, dotnet, new MachineNames(), console);
-var gitSaver = new GitSaver(subprocess, console, new RepoNames());
+var gitSaver = new GitSaver(subprocess, console, new RepoNames(), new WebPagePublisher(subprocess, console, new WebPage()));
 var demos = new DemoCatalog();
 
 var app = new EssApp(

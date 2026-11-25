@@ -45,6 +45,11 @@ expect_in "Pushed to GitHub" "$("$ess_binary" g)" "g pushes to the remote"
 expect_in "Nothing new" "$("$ess_binary" g)" "g again has nothing new"
 
 git -C "$remote" log --oneline main | grep -q "ess: save" && echo "pass: remote has the commit"
+pages="$(git -C "$remote" ls-tree -r --name-only gh-pages)"
+expect_in "DoorLampSm.sim.html" "$pages" "g puts the simulator on gh-pages"
+expect_in "index.html" "$pages" "gh-pages has an index"
+case "$pages" in *".plantuml"*|*"DoorLampSm.cs"*) echo "FAIL: gh-pages has more than the simulators"; exit 1 ;; esac
+echo "pass: gh-pages has only the web page"
 demo_dir="$work_dir/demos"
 mkdir -p "$demo_dir"
 cd "$demo_dir"

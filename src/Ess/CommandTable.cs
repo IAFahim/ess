@@ -53,7 +53,7 @@ internal sealed class CommandTable
             "Make the code every time you save. While watching, g saves to GitHub now and q stops.",
             ["ess w"]),
         new(EssCommand.Git, "git", ["g", "save", "s"], "", 0, 0,
-            "Save to git and push to GitHub. It makes a private repo if there is none.",
+            "Save to git and push to GitHub. It makes a private repo if there is none, and puts the simulators on a web page.",
             ["ess g"]),
         new(EssCommand.Demo, "demo", ["d"], "[which]", 0, 1,
             "List the demos. Give a number or a name to make one in a new folder.",
