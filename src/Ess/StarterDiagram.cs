@@ -8,7 +8,7 @@ internal sealed class StarterDiagram
         ' ess starter. Edit this file, save it, and ess makes the code again.
         ' To handle an event and stay in the same state, write it with no arrow:
         '   On : TICK / count += 1;
-        ' ess makes the code a struct. For Unity ECS, remove the # before BaseList below.
+        {structNote}
 
         [*] --> Off
 
@@ -23,7 +23,7 @@ internal sealed class StarterDiagram
         AutoExpandedVars = "public int count;"
         [RenderConfig.CSharp]
         NameSpace = "Machines"
-        # BaseList = "Unity.Entities.IComponentData"
+        {baseList}
         [SmRunnerSettings]
         transpilerId = "CSharp"
         [SmRunnerSettings.smDesignDescriber]
@@ -35,5 +35,15 @@ internal sealed class StarterDiagram
         @enduml
         """;
 
-    public string Render(string machineName) => Template.Replace("{name}", machineName, StringComparison.Ordinal) + "\n";
+    private const string PlainStructNote = "' ess makes the code a struct. For Unity ECS, remove the # before BaseList below.";
+    private const string ComponentNote = "' ess makes the code a struct. BaseList below makes it a Unity ECS component.";
+    private const string BaseList = "BaseList = \"Unity.Entities.IComponentData\"";
+
+    public string Render(string machineName, bool asComponent = false)
+    {
+        return Template
+            .Replace("{name}", machineName, StringComparison.Ordinal)
+            .Replace("{structNote}", asComponent ? ComponentNote : PlainStructNote, StringComparison.Ordinal)
+            .Replace("{baseList}", asComponent ? BaseList : "# " + BaseList, StringComparison.Ordinal) + "\n";
+    }
 }

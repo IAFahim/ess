@@ -9,6 +9,7 @@ public enum EssCommand
     Demo,
     Update,
     Open,
+    Unity,
 }
 
 internal sealed record CommandSpec(
@@ -42,6 +43,9 @@ internal sealed class CommandTable
         new(EssCommand.New, "new", ["n", "in"], "[what]", 0, 1,
             "Make a starter diagram in this folder. \"ess n sv\" makes a .NET project that links a StateSmith machine and the sv engine (in lib/sv). The word sv is reserved, it cannot be a machine name.",
             ["ess n", "ess n door", "ess n sv"]),
+        new(EssCommand.Unity, "unity", ["p", "package"], "[what]", 0, 1,
+            "Make this folder a Unity package with a starter machine. In Unity: Package Manager, press +, Install package from disk, pick its package.json. The diagrams stay here, outside Unity.",
+            ["ess unity", "ess unity hero"]),
         new(EssCommand.Run, "run", ["r"], "", 0, 0,
             "Make the code once.",
             ["ess r"]),
@@ -62,7 +66,7 @@ internal sealed class CommandTable
             ["ess o", "ess o Hero.plantuml"]),
     ];
 
-    public IReadOnlyList<string> GlobalExamples { get; } = ["ess d", "ess n sv", "ess u sv", "ess w", "ess o"];
+    public IReadOnlyList<string> GlobalExamples { get; } = ["ess d", "ess n sv", "ess unity", "ess u sv", "ess w", "ess o"];
 
     public CommandSpec? Find(string word)
     {

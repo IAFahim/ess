@@ -13,6 +13,7 @@ internal sealed class EssApp(
     DemoCommand demoCommand,
     UpdateCommand updateCommand,
     OpenCommand openCommand,
+    UnityCommand unityCommand,
     string version,
     bool interactive)
 {
@@ -139,6 +140,7 @@ internal sealed class EssApp(
             EssCommand.Demo => demoCommand.Run(arguments, folder, chooseAfterList, cancel),
             EssCommand.Update => updateCommand.Run(arguments, folder, cancel),
             EssCommand.Open => openCommand.Run(arguments, folder, cancel),
+            EssCommand.Unity => unityCommand.Run(arguments, folder, cancel),
             _ => throw new ArgumentOutOfRangeException(nameof(command), command, "Unknown ess command"),
         };
     }

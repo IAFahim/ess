@@ -5,6 +5,7 @@ internal sealed class NewCommand(
     StateSmithTool tool,
     StarterDiagram starter,
     MachineNames machineNames,
+    UnityPackage unityPackage,
     SvCommand sv,
     EssConsole console)
 {
@@ -28,7 +29,7 @@ internal sealed class NewCommand(
         }
         else
         {
-            await File.WriteAllTextAsync(diagramPath, starter.Render(machineName), cancel);
+            await File.WriteAllTextAsync(diagramPath, starter.Render(machineName, asComponent: unityPackage.IsPackage(folder)), cancel);
             console.Good($"made {diagramFileName}");
         }
 

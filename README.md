@@ -11,6 +11,7 @@ You do not need an IDE. You do not need to remember long commands.
 | Type | Short | Does |
 |---|---|---|
 | `ess new [what]` | `n`, `in` | makes a starter diagram here. `ess n sv` makes a project linking StateSmith and sv |
+| `ess unity [what]` | `p` | makes this folder a Unity package with a starter machine. In Unity: Package Manager, +, Install package from disk, pick its `package.json`. The diagrams stay here, outside Unity |
 | `ess run` | `r` | makes the code once |
 | `ess watch` | `w` | makes the code every time you save. While watching: `g` saves to GitHub now, `q` stops |
 | `ess git` | `g`, `s` | saves to git and pushes to GitHub |
@@ -19,6 +20,20 @@ You do not need an IDE. You do not need to remember long commands.
 | `ess open [file]` | `o` | Linux: gets or updates [omaspec](https://github.com/enhapu-afk/omaspec), makes it the app that opens `.plantuml` files, then opens the diagrams here |
 
 `ess` alone in a terminal shows a one-key menu. If you mistype a command, `ess` tells you what you probably meant. `ess --version` shows the version.
+
+## Use it in Unity
+
+Keep the diagrams outside Unity. Unity only gets the code.
+
+```
+mkdir my-machines
+cd my-machines
+ess unity
+```
+
+Then, in Unity (once): Window > Package Management > Package Manager, press `+`, **Install package from disk...**, and pick `my-machines/package.json`.
+
+Now run `ess w` in `my-machines`. Every time you save a diagram, Unity gets the new struct. Each machine is an ECS component in the namespace `Machines` and runs in Burst jobs.
 
 ## Try a demo
 
