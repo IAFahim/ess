@@ -6,6 +6,8 @@ internal sealed class CodeGenerator(
     GenerationOutputJudge judge,
     DiagramFiles diagrams,
     StructConverter structConverter,
+    UnityPackage package,
+    UnityComponentFile componentFile,
     EssConsole console)
 {
     private readonly string[] stateSmithArguments = ["run", "--here", "--no-csx", "--no-ask", "--rebuild"];
@@ -49,6 +51,40 @@ internal sealed class CodeGenerator(
             console.Good(IsCSharp(fileName) ? $"made {fileName}  (a struct)" : $"made {fileName}");
         }
 
+        if (package.IsPackage(folder))
+        {
+            foreach (var fileName in written.Where(IsCSharp))
+            {
+                if (!await WriteComponentFile(folder, fileName, cancel))
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    private async Task<bool> WriteComponentFile(string folder, string fileName, CancellationToken cancel)
+    {
+        var machine = componentFile.Read(await File.ReadAllTextAsync(Path.Combine(folder, fileName), cancel));
+        if (machine is not { } found)
+        {
+            console.Bad($"Could not find the machine struct in {fileName}, so Unity will not see it as a component.");
+            return false;
+        }
+
+        var unityFolder = Path.Combine(folder, UnityComponentFile.FolderName);
+        var path = Path.Combine(unityFolder, componentFile.FileName(found.Name));
+        var text = componentFile.Text(found);
+
+        if (!File.Exists(path) || await File.ReadAllTextAsync(path, cancel) != text)
+        {
+            Directory.CreateDirectory(unityFolder);
+            await File.WriteAllTextAsync(path, text, cancel);
+        }
+
+        console.Good($"made {componentFile.RelativePath(found.Name)}  (makes it an ECS component in Unity)");
         return true;
     }
 

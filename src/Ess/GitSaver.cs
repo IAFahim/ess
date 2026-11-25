@@ -11,8 +11,10 @@ internal enum SaveOutcome
 internal sealed class GitSaver(Subprocess subprocess, EssConsole console, RepoNames repoNames)
 {
     private const string IgnoreFileName = ".gitignore";
+    private const string BackupFiles = "*~";
+    private const string KeepDotnetFolder = "!" + DotnetFolder.FolderName + "/";
 
-    private readonly string[] namesGitShouldIgnore = [".DS_Store", "Thumbs.db", "*.swp", "*~", "bin/", "obj/"];
+    private readonly string[] namesGitShouldIgnore = [".DS_Store", "Thumbs.db", "*.swp", BackupFiles, KeepDotnetFolder, "bin/", "obj/"];
 
     public bool IsOwnRepository(string folder) => Directory.Exists(Path.Combine(folder, ".git"));
 
@@ -50,7 +52,7 @@ internal sealed class GitSaver(Subprocess subprocess, EssConsole console, RepoNa
             return SaveOutcome.NeedsHelp;
         }
 
-        await WriteIgnoreFileIfMissing(folder, cancel);
+        await WriteIgnoreFile(folder, cancel);
 
         await Git(folder, cancel, "add", "-A");
         var pending = await Git(folder, cancel, "status", "--porcelain");
@@ -165,12 +167,26 @@ internal sealed class GitSaver(Subprocess subprocess, EssConsole console, RepoNa
         return false;
     }
 
-    private async Task WriteIgnoreFileIfMissing(string folder, CancellationToken cancel)
+    private async Task WriteIgnoreFile(string folder, CancellationToken cancel)
     {
         var ignorePath = Path.Combine(folder, IgnoreFileName);
         if (!File.Exists(ignorePath))
         {
             await File.WriteAllLinesAsync(ignorePath, namesGitShouldIgnore, cancel);
+            return;
+        }
+
+        if (!Directory.Exists(Path.Combine(folder, DotnetFolder.FolderName)))
+        {
+            return;
+        }
+
+        var text = await File.ReadAllTextAsync(ignorePath, cancel);
+        var lines = text.Split('\n').Select(line => line.Trim()).ToList();
+        if (lines.Contains(BackupFiles) && !lines.Contains(KeepDotnetFolder))
+        {
+            var separator = text.Length == 0 || text.EndsWith('\n') ? "" : "\n";
+            await File.AppendAllTextAsync(ignorePath, separator + KeepDotnetFolder + "\n", cancel);
         }
     }
 

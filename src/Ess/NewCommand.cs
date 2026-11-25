@@ -29,7 +29,7 @@ internal sealed class NewCommand(
         }
         else
         {
-            await File.WriteAllTextAsync(diagramPath, starter.Render(machineName, asComponent: unityPackage.IsPackage(folder)), cancel);
+            await File.WriteAllTextAsync(diagramPath, starter.Render(machineName, inPackage: unityPackage.IsPackage(folder)), cancel);
             console.Good($"made {diagramFileName}");
         }
 

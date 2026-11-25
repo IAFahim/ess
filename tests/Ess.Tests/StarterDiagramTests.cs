@@ -25,13 +25,15 @@ public class StarterDiagramTests
     }
 
     [Fact]
-    public void ComponentStarterSwitchesTheComponentLineOn()
+    public void PackageStarterHasNoUnityInIt()
     {
-        var text = new StarterDiagram().Render("DoorSm", asComponent: true);
+        var text = new StarterDiagram().Render("DoorSm", inPackage: true);
 
-        Assert.Contains("\nBaseList = \"Unity.Entities.IComponentData\"", text);
-        Assert.DoesNotContain("# BaseList", text);
+        Assert.DoesNotContain("BaseList =", text);
+        Assert.DoesNotContain("IComponentData", text);
+        Assert.Contains("Unity/", text);
         Assert.DoesNotContain("{baseList}", text);
         Assert.DoesNotContain("{structNote}", text);
+        Assert.Contains("NameSpace = \"Machines\"\n[SmRunnerSettings]", text);
     }
 }

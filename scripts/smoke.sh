@@ -57,4 +57,29 @@ fi
 expect_in "Expect 3 passed" "$("$ess_binary" d 3)" "demo 3 (ecs) is made"
 expect_in "already here" "$("$ess_binary" d 3 || true)" "a demo never overwrites"
 
+package_dir="$work_dir/my-machines"
+mkdir -p "$package_dir"
+cd "$package_dir"
+expect_in "made Unity/MyMachinesSm.Component.cs" "$("$ess_binary" unity)" "unity makes a package and a component file"
+if grep -q "IComponentData" MyMachinesSm.cs; then
+  echo "FAIL: the machine itself has Unity in it"
+  exit 1
+fi
+echo "pass: the machine itself has no Unity in it"
+if dotnet --version >/dev/null 2>&1; then
+  expect_in "TOGGLE   -> ON   count=1" "$("$ess_binary" r)" "r runs the package machine in .NET, no Unity"
+else
+  echo "skip: dotnet not found, the package machine was not run"
+fi
+package_remote="$work_dir/package-remote.git"
+git init --bare -q "$package_remote"
+git init -q -b main
+git remote add origin "$package_remote"
+expect_in "Pushed to GitHub" "$("$ess_binary" g)" "g pushes the package"
+saved="$(git ls-tree -r --name-only HEAD)"
+expect_in "Dotnet~/Program.cs" "$saved" "git keeps Dotnet~"
+expect_in "Unity/MyMachinesSm.Component.cs" "$saved" "git keeps the Unity folder"
+case "$saved" in *"/bin/"*|*"/obj/"*) echo "FAIL: git keeps the .NET build output"; exit 1 ;; esac
+echo "pass: git does not keep the .NET build output"
+
 echo "all smoke checks passed"

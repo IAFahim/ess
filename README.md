@@ -11,8 +11,8 @@ You do not need an IDE. You do not need to remember long commands.
 | Type | Short | Does |
 |---|---|---|
 | `ess new [what]` | `n`, `in` | makes a starter diagram here. `ess n sv` makes a project linking StateSmith and sv |
-| `ess unity [what]` | `p` | makes this folder a Unity package with a starter machine. In Unity: Package Manager, +, Install package from disk, pick its `package.json`. The diagrams stay here, outside Unity |
-| `ess run` | `r` | makes the code once |
+| `ess unity [what]` | `p` | makes this folder a Unity package with a starter machine. In Unity: Package Manager, +, Install package from disk, pick its `package.json`. The diagrams stay here, outside Unity. The machine is plain C#, so `ess r` runs it in .NET too |
+| `ess run` | `r` | makes the code once. In a folder made by `ess unity`, it also runs the machine in .NET |
 | `ess watch` | `w` | makes the code every time you save. While watching: `g` saves to GitHub now, `q` stops |
 | `ess git` | `g`, `s` | saves to git and pushes to GitHub |
 | `ess demo [which]` | `d` | lists the demos. `ess d 1` or `ess d light` makes one |
@@ -34,6 +34,30 @@ ess unity
 Then, in Unity (once): Window > Package Management > Package Manager, press `+`, **Install package from disk...**, and pick `my-machines/package.json`.
 
 Now run `ess w` in `my-machines`. Every time you save a diagram, Unity gets the new struct. Each machine is an ECS component in the namespace `Machines` and runs in Burst jobs.
+
+You do not need Unity to try a machine:
+
+```
+ess r
+```
+
+```
+Start    -> OFF  count=0
+TOGGLE   -> ON   count=1
+TOGGLE   -> OFF  count=0
+TOGGLE   -> ON   count=1
+```
+
+What is in the folder:
+
+| File | What it is |
+|---|---|
+| `MyMachinesSm.plantuml` | the diagram. You edit this |
+| `MyMachinesSm.cs` | the machine, plain C#. `ess` makes it |
+| `MyMachinesSm.sim.html` | a simulator. Open it in a browser and click the events |
+| `Unity/MyMachinesSm.Component.cs` | one line that makes the machine an ECS component. Only Unity reads it |
+| `Dotnet~/` | a small .NET program that runs the machine. Unity skips folders ending in `~` |
+| `package.json`, `Ess.MyMachines.asmdef` | what Unity needs to load the package |
 
 ## Try a demo
 
@@ -125,7 +149,7 @@ Open `DoorSm.plantuml` in any text editor and save it (on Linux, `ess o` opens i
 
 `ess` always makes the machine a `partial struct`, never a class, so it is unmanaged data that Burst can run. It removes the two things C# 9 (Unity's language level) will not allow on a struct: the `= new Vars()` field initializer and the empty constructor.
 
-To use it as a component, add this line to the `[RenderConfig.CSharp]` block of the diagram (the starter has it commented out):
+In a folder made by `ess unity` this is done for you: the machine stays plain C# and `Unity/<Name>.Component.cs` makes it a component. Anywhere else, to use it as a component, add this line to the `[RenderConfig.CSharp]` block of the diagram (the starter has it commented out):
 
 ```
 BaseList = "Unity.Entities.IComponentData"

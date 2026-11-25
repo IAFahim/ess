@@ -42,8 +42,12 @@ internal sealed class UnityPackage(MachineNames machineNames)
     private const string ReadmeTemplate = """
         # {display}
 
-        State machines for Unity ECS, made by ess.
-        The diagrams live here, outside Unity. Unity only gets the made code.
+        State machines made by ess. The diagrams live here, outside Unity.
+        Each machine is plain C#, so you can use it three ways:
+
+        - In a browser: open a .sim.html file and click the events.
+        - In .NET, no Unity: ess r makes the code and runs the program in Dotnet~.
+        - In Unity: add this folder as a package. Unity/ makes each machine an ECS component.
 
         ## Add it to Unity (once)
 
@@ -56,14 +60,25 @@ internal sealed class UnityPackage(MachineNames machineNames)
         ## Every day
 
             ess w       make the code every time you save a diagram
+            ess r       make the code once and run it in .NET (no Unity)
             ess o       open the diagrams in omaspec
             ess n door  add another machine called Door
             ess g       save to GitHub
 
-        ## Use a machine
+        ## Files
 
-        Each diagram makes a struct in the namespace Machines. It is an ECS component.
-        Scripts in Assets see it. Your own .asmdef needs a reference to {assembly}.
+            *.plantuml      the diagrams. Edit these.
+            *.cs            the machines, plain C#. ess makes them.
+            *.sim.html      a simulator for each machine. Open it in a browser.
+            Unity/          ess makes these. They make each machine a Unity ECS component.
+            Dotnet~/        a small .NET program that runs the machines without Unity.
+                            Unity skips folders whose name ends in ~.
+            package.json    and {assembly}.asmdef are what Unity reads.
+
+        ## Use a machine in Unity
+
+        Each diagram makes a struct in the namespace Machines. Scripts in Assets see it.
+        Your own .asmdef needs a reference to {assembly}.
 
         - Pass the machine by ref. A copy changes only the copy.
         - A new (zero) machine has stateId ROOT. Call Start() once when you see that.
@@ -72,7 +87,9 @@ internal sealed class UnityPackage(MachineNames machineNames)
         A full example with a Burst job and tests: ess d 3
         """;
 
-    public bool IsPackage(string folder) => File.Exists(Path.Combine(folder, ManifestFileName));
+    public bool IsPackage(string folder) =>
+        File.Exists(Path.Combine(folder, ManifestFileName))
+        && Directory.EnumerateFiles(folder, "*.asmdef").Any();
 
     public string? UnityProjectAround(string folder)
     {

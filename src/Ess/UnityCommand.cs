@@ -4,6 +4,7 @@ internal sealed class UnityCommand(
     UnityPackage package,
     StarterDiagram starter,
     MachineNames machineNames,
+    DotnetFolder dotnetFolder,
     CodeGenerator generator,
     UserFolders userFolders,
     EssConsole console)
@@ -37,7 +38,11 @@ internal sealed class UnityCommand(
         await Write(folder, UnityPackage.ManifestFileName, package.Manifest(folder), $"  ({package.PackageName(folder)})", cancel);
         await Write(folder, package.AssemblyFileName(folder), package.AssemblyDefinition(folder), "", cancel);
         await Write(folder, UnityPackage.ReadmeFileName, package.Readme(folder), "", cancel);
-        await Write(folder, machineName + ".plantuml", starter.Render(machineName, asComponent: true), "", cancel);
+        await Write(folder, machineName + ".plantuml", starter.Render(machineName, inPackage: true), "", cancel);
+
+        Directory.CreateDirectory(Path.Combine(folder, DotnetFolder.FolderName));
+        await Write(folder, Path.Combine(DotnetFolder.FolderName, dotnetFolder.ProjectFileName(folder)), dotnetFolder.Project(), "  (runs the machines without Unity)", cancel);
+        await Write(folder, Path.Combine(DotnetFolder.FolderName, DotnetFolder.ProgramFileName), dotnetFolder.Program(machineName), "", cancel);
 
         if (!await generator.Make(folder, cancel))
         {
@@ -72,6 +77,7 @@ internal sealed class UnityCommand(
         console.Line();
         console.Line("Then, here (not in Unity):");
         console.Step("ess w   edit the diagram, Unity gets the new code on every save");
+        console.Step("ess r   make the code and run it in .NET, no Unity needed");
         console.Step("ess g   save to GitHub");
     }
 

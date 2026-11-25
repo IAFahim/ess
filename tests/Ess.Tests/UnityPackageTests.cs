@@ -57,6 +57,8 @@ public class UnityPackageTests : IDisposable
 
         Assert.Contains("Install package from disk", readme);
         Assert.Contains("Ess.MyGame", readme);
+        Assert.Contains("Dotnet~", readme);
+        Assert.Contains("Unity/", readme);
         Assert.DoesNotContain("{", readme);
     }
 
@@ -79,12 +81,14 @@ public class UnityPackageTests : IDisposable
     }
 
     [Fact]
-    public void AFolderIsAPackageOnceItHasAManifest()
+    public void AFolderIsAPackageOnceItHasAManifestAndAnAssemblyDefinition()
     {
         Assert.False(package.IsPackage(workFolder));
 
         File.WriteAllText(Path.Combine(workFolder, UnityPackage.ManifestFileName), package.Manifest(workFolder));
+        Assert.False(package.IsPackage(workFolder));
 
+        File.WriteAllText(Path.Combine(workFolder, package.AssemblyFileName(workFolder)), package.AssemblyDefinition(workFolder));
         Assert.True(package.IsPackage(workFolder));
     }
 }

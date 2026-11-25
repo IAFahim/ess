@@ -5,15 +5,12 @@ internal sealed class DemoCommand(
     DemoSelector selector,
     DemoFiles files,
     CodeGenerator generator,
-    Subprocess subprocess,
-    DotnetLocator dotnet,
+    DotnetRunner runner,
     SvCommand sv,
     EssKeys keys,
     EssConsole console)
 {
     private const char QuitKey = 'q';
-
-    private readonly string[] dotnetRunArguments = ["run", "--nologo"];
 
     public async Task<int> Run(IReadOnlyList<string> arguments, string folder, bool chooseAfterList, CancellationToken cancel)
     {
@@ -81,7 +78,7 @@ internal sealed class DemoCommand(
 
         if (demo.RunsWithDotnet)
         {
-            await RunWithDotnet(demoFolder, cancel);
+            await runner.Run(demoFolder, $"cd {demoFolder} && dotnet run", cancel);
         }
 
         console.Line();
@@ -92,29 +89,5 @@ internal sealed class DemoCommand(
 
         console.Step("More demos:  ess d");
         return 0;
-    }
-
-    private async Task RunWithDotnet(string demoFolder, CancellationToken cancel)
-    {
-        console.Line();
-        console.Step($"Running it:  cd {demoFolder} && dotnet run   (first time takes a few seconds)");
-
-        var install = await dotnet.Find(cancel);
-        if (install is null)
-        {
-            console.Line();
-            console.Warn("I could not find a .NET 10 SDK, so I could not run it. Get it from https://dotnet.microsoft.com/download");
-            return;
-        }
-
-        var result = await subprocess.Run(install.Executable, dotnetRunArguments, demoFolder, cancel, install.Environment);
-        console.Line();
-
-        console.Line(result.Output.Trim());
-
-        if (!result.Succeeded)
-        {
-            console.Warn("dotnet run did not work. The demo files are made. Run it yourself to see the full error.");
-        }
     }
 }

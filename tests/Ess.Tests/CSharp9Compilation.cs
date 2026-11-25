@@ -9,6 +9,7 @@ internal sealed record CompiledSource(
     IReadOnlyList<string> Errors,
     IReadOnlyList<string> Warnings,
     bool? MachineIsUnmanaged,
+    bool MachineIsComponent,
     byte[]? Assembly);
 
 internal sealed class CSharp9Compilation
@@ -17,21 +18,34 @@ internal sealed class CSharp9Compilation
 
     private readonly MetadataReference[] references = ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")!)
         .Split(Path.PathSeparator)
-        .Where(path => Path.GetFileName(path) is "System.Private.CoreLib.dll" or "System.Runtime.dll" or "System.Collections.dll")
+        .Where(path => Path.GetFileName(path) is "System.Private.CoreLib.dll" or "System.Runtime.dll" or "System.Collections.dll" or "System.Console.dll")
         .Select(path => (MetadataReference)MetadataReference.CreateFromFile(path))
         .ToArray();
 
-    public CompiledSource Compile(string machineSource, string machineTypeName, string assemblyName)
+    public CompiledSource Compile(string machineSource, string machineTypeName, string assemblyName) =>
+        Compile([machineSource, UnityEntitiesStub], machineTypeName, assemblyName);
+
+    public CompiledSource CompileWithoutUnity(string machineSource, string machineTypeName, string assemblyName) =>
+        Compile([machineSource], machineTypeName, assemblyName);
+
+    public CompiledSource CompileWithComponentFile(string machineSource, string componentSource, string machineTypeName, string assemblyName) =>
+        Compile([machineSource, componentSource, UnityEntitiesStub], machineTypeName, assemblyName);
+
+    public CompiledSource CompileProgram(string machineSource, string programSource, string machineTypeName, string assemblyName) =>
+        Compile([machineSource, programSource], machineTypeName, assemblyName, OutputKind.ConsoleApplication);
+
+    private CompiledSource Compile(
+        IEnumerable<string> sources,
+        string machineTypeName,
+        string assemblyName,
+        OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary)
     {
         var parseOptions = new CSharpParseOptions(LanguageVersion.CSharp9);
         var compilation = CSharpCompilation.Create(
             assemblyName,
-            [
-                CSharpSyntaxTree.ParseText(machineSource, parseOptions),
-                CSharpSyntaxTree.ParseText(UnityEntitiesStub, parseOptions),
-            ],
+            sources.Select(source => CSharpSyntaxTree.ParseText(source, parseOptions)),
             references,
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+            new CSharpCompilationOptions(outputKind, nullableContextOptions: NullableContextOptions.Enable));
 
         using var stream = new MemoryStream();
         var emitted = compilation.Emit(stream);
@@ -40,7 +54,10 @@ internal sealed class CSharp9Compilation
         var warnings = emitted.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Warning).Select(d => d.ToString()).ToList();
         var machineType = compilation.GetTypeByMetadataName(machineTypeName);
 
-        return new CompiledSource(errors, warnings, machineType?.IsUnmanagedType, emitted.Success ? stream.ToArray() : null);
+        var isComponent = machineType is not null
+            && machineType.AllInterfaces.Any(type => type.ToDisplayString() == "Unity.Entities.IComponentData");
+
+        return new CompiledSource(errors, warnings, machineType?.IsUnmanagedType, isComponent, emitted.Success ? stream.ToArray() : null);
     }
 }
 

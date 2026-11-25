@@ -36,14 +36,14 @@ internal sealed class StarterDiagram
         """;
 
     private const string PlainStructNote = "' ess makes the code a struct. For Unity ECS, remove the # before BaseList below.";
-    private const string ComponentNote = "' ess makes the code a struct. BaseList below makes it a Unity ECS component.";
+    private const string PackageNote = "' ess makes the code a plain struct. In Unity, the file ess makes in Unity/ turns it into an ECS component.";
     private const string BaseList = "BaseList = \"Unity.Entities.IComponentData\"";
 
-    public string Render(string machineName, bool asComponent = false)
+    public string Render(string machineName, bool inPackage = false)
     {
         return Template
             .Replace("{name}", machineName, StringComparison.Ordinal)
-            .Replace("{structNote}", asComponent ? ComponentNote : PlainStructNote, StringComparison.Ordinal)
-            .Replace("{baseList}", asComponent ? BaseList : "# " + BaseList, StringComparison.Ordinal) + "\n";
+            .Replace("{structNote}", inPackage ? PackageNote : PlainStructNote, StringComparison.Ordinal)
+            .Replace("{baseList}\n", inPackage ? "" : "# " + BaseList + "\n", StringComparison.Ordinal) + "\n";
     }
 }
